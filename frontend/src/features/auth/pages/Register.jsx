@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router';
+import { State, City } from 'country-state-city';
+import SearchableDropdown from '../components/SearchableDropdown';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -18,13 +20,23 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const stateDistrictMap = {
-    'Delhi': ['New Delhi', 'North Delhi', 'South Delhi', 'East Delhi'],
-    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore'],
-    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane'],
-    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Noida', 'Varanasi'],
-    'West Bengal': ['Kolkata', 'Howrah', 'Darjeeling', 'Durgapur']
-  };
+  // Fetch all Indian states and sort them alphabetically
+  const statesList = useMemo(() => {
+    return State.getStatesOfCountry('IN')
+      .map((s) => s.name)
+      .sort((a, b) => a.localeCompare(b));
+  }, []);
+
+  // Fetch cities/districts dynamically based on the selected state
+  const districtsList = useMemo(() => {
+    if (!formData.state) return [];
+    const stateObj = State.getStatesOfCountry('IN').find((s) => s.name === formData.state);
+    if (!stateObj) return [];
+    return City.getCitiesOfState('IN', stateObj.isoCode)
+      .map((c) => c.name)
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort((a, b) => a.localeCompare(b));
+  }, [formData.state]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -254,39 +266,29 @@ const Register = () => {
               {/* State Select */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">State</label>
-                <select 
+                <SearchableDropdown
                   name="state"
                   value={formData.state}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 shadow-sm transition-all ${
-                    errors.state ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
-                >
-                  <option value="">Select State</option>
-                  {Object.keys(stateDistrictMap).map((stateName) => (
-                    <option key={stateName} value={stateName}>{stateName}</option>
-                  ))}
-                </select>
+                  options={statesList}
+                  placeholder="Select State"
+                  error={errors.state}
+                />
                 {errors.state && <p className="text-red-500 text-[10px] mt-0.5">{errors.state}</p>}
               </div>
 
               {/* District Select */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">District</label>
-                <select 
+                <SearchableDropdown
                   name="district"
                   value={formData.district}
                   onChange={handleInputChange}
+                  options={districtsList}
+                  placeholder="Select District"
                   disabled={!formData.state}
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
-                    errors.district ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
-                >
-                  <option value="">Select District</option>
-                  {formData.state && stateDistrictMap[formData.state].map((districtName) => (
-                    <option key={districtName} value={districtName}>{districtName}</option>
-                  ))}
-                </select>
+                  error={errors.district}
+                />
                 {errors.district && <p className="text-red-500 text-[10px] mt-0.5">{errors.district}</p>}
               </div>
 
