@@ -185,7 +185,8 @@ const Login = () => {
               )}
 
             </div>
-                        {/* REMEMBER ME + FORGOT PASSWORD */}
+            
+            {/* REMEMBER ME + FORGOT PASSWORD */}
 
             <div className="flex items-center justify-between">
 
@@ -224,48 +225,6 @@ const Login = () => {
               {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
 
-            {/* DIVIDER */}
-
-            <div className="relative flex items-center py-2">
-
-              <div className="flex-grow border-t border-slate-300"></div>
-
-              <span className="mx-4 text-xs font-semibold text-slate-500">
-                OR
-              </span>
-
-              <div className="flex-grow border-t border-slate-300"></div>
-
-            </div>
-
-            {/* GOOGLE */}
-
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 border border-slate-300 rounded-xl py-3 hover:bg-slate-50 transition"
-            >
-              <FaGoogle className="text-red-500 text-lg" />
-
-              <span className="font-medium">
-                Continue with Google
-              </span>
-
-            </button>
-
-            {/* DIGILOCKER */}
-
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 border border-slate-300 rounded-xl py-3 hover:bg-slate-50 transition"
-            >
-              <FaCloud className="text-[#0052cc] text-lg" />
-
-              <span className="font-medium">
-                Continue with DigiLocker
-              </span>
-
-            </button>
-
             {/* CREATE ACCOUNT */}
 
             <div className="text-center pt-2">
@@ -284,7 +243,7 @@ const Login = () => {
               </p>
 
             </div>
-                      </form>
+          </form>
 
         </div>
 
