@@ -47,7 +47,9 @@ const Dashboard = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Date of Birth</span>
-                  <span className="text-base font-medium text-slate-800">{user.dob}</span>
+                  <span className="text-base font-medium text-slate-800">
+                    {new Date(user.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                  </span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</span>
@@ -58,15 +60,15 @@ const Dashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="text-4xl font-black text-[#0052cc] mb-2">3</div>
+                <div className="text-4xl font-black text-[#0052cc] mb-2">0</div>
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide">Saved Schemes</h3>
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="text-4xl font-black text-[#0052cc] mb-2">1</div>
+                <div className="text-4xl font-black text-[#0052cc] mb-2">0</div>
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide">Active Applications</h3>
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="text-4xl font-black text-[#0052cc] mb-2">5</div>
+                <div className="text-4xl font-black text-[#0052cc] mb-2">0</div>
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide">AI Consultations</h3>
               </div>
             </div>

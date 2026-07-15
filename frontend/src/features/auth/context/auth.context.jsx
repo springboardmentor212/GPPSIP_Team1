@@ -15,7 +15,7 @@ const AuthProvider = ({ children }) => {
                 if (data.success && data.user) {
                     setUser(data.user);
                 }
-            } catch (error) {
+            } catch {
                 // No active session or token expired
                 console.log("No active session.");
             } finally {
