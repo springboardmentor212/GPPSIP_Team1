@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { FaGoogle, FaCloud } from "react-icons/fa";
+import useAuth from "../hooks/useAuth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ const Login = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { handleLogin } = useAuth();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -46,16 +49,23 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (validate()) {
       setIsSubmitting(true);
 
-      setTimeout(() => {
-        alert("Login Successful! Backend integration pending.");
+      try {
+        await handleLogin(formData.email, formData.password);
+        navigate("/");
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          email: error.message || "Invalid email or password",
+        }));
+      } finally {
         setIsSubmitting(false);
-      }, 1000);
+      }
     }
   };
 

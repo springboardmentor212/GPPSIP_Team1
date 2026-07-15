@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { State, City } from 'country-state-city';
 import SearchableDropdown from '../components/SearchableDropdown';
+import useAuth from '../hooks/useAuth';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,8 @@ const Register = () => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { handleRegister } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch all Indian states and sort them alphabetically
   const statesList = useMemo(() => {
@@ -98,14 +101,21 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      setTimeout(() => {
-        alert('Registration successful! (Integration with database is pending)');
+      try {
+        await handleRegister(formData);
+        navigate('/');
+      } catch (error) {
+        setErrors((prev) => ({
+          ...prev,
+          email: error.message || 'Registration failed',
+        }));
+      } finally {
         setIsSubmitting(false);
-      }, 1000);
+      }
     }
   };
 

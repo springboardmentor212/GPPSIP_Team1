@@ -172,8 +172,32 @@ const logoutController = async (req, res, next) => {
     }
 };
 
+/**
+ * @route GET /api/auth/me
+ * @desc Get current user details
+ * @access Private
+ */
+const getMeController = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     registerController,
     loginController,
-    logoutController
+    logoutController,
+    getMeController
 };

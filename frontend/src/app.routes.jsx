@@ -1,7 +1,17 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import LandingPage from "./pages/LandingPage";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
+import Dashboard from "./pages/Dashboard";
+import useAuth from "./features/auth/hooks/useAuth";
+
+const GuestRoute = ({ children }) => {
+    const { user } = useAuth();
+    if (user) {
+        return <Navigate to="/" replace />;
+    }
+    return children;
+};
 
 const router = createBrowserRouter([
     {
@@ -10,11 +20,23 @@ const router = createBrowserRouter([
     },
     {
         path: "/login",
-        element: <Login />,
+        element: (
+            <GuestRoute>
+                <Login />
+            </GuestRoute>
+        ),
     },
     {
         path: "/register",
-        element: <Register />,
+        element: (
+            <GuestRoute>
+                <Register />
+            </GuestRoute>
+        ),
+    },
+    {
+        path: "/dashboard",
+        element: <Dashboard />,
     }
 ]);
 

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router';
+import useAuth from '../features/auth/hooks/useAuth';
 
 const LandingPage = () => {
+  const { user, handleLogout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,10 +60,21 @@ const LandingPage = () => {
           </nav>
 
           {/* Action Button */}
-          <div className="hidden md:block">
-            <Link to="/login" className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-bold bg-[#0052cc] hover:bg-[#0047b3] text-white shadow-sm transition-colors duration-200">
-              Sign In
-            </Link>
+          <div className="hidden md:flex items-center gap-4">
+            {user ? (
+              <>
+                <Link to="/dashboard" className="text-sm font-bold text-[#0052cc] hover:underline">
+                  Dashboard ({user.fullName.split(' ')[0]})
+                </Link>
+                <button onClick={handleLogout} className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 shadow-sm transition-colors duration-200">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-bold bg-[#0052cc] hover:bg-[#0047b3] text-white shadow-sm transition-colors duration-200">
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -100,9 +113,20 @@ const LandingPage = () => {
             <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-base font-semibold text-slate-600 hover:text-slate-900">
               Contact
             </a>
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="w-full flex items-center justify-center py-2.5 rounded-lg text-base font-bold bg-[#0052cc] hover:bg-[#0047b3] text-white">
-              Sign In
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="w-full flex items-center justify-center py-2.5 rounded-lg text-base font-bold text-[#0052cc] border border-[#0052cc]">
+                  Dashboard
+                </Link>
+                <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center justify-center py-2.5 rounded-lg text-base font-bold bg-slate-100 hover:bg-slate-200 text-slate-800">
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="w-full flex items-center justify-center py-2.5 rounded-lg text-base font-bold bg-[#0052cc] hover:bg-[#0047b3] text-white">
+                Sign In
+              </Link>
+            )}
           </div>
         )}
       </header>
