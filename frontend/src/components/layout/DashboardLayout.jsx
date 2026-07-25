@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopNavbar from './TopNavbar';
-import FloatingAIAssistant from './FloatingAIAssistant';
+import FloatingAIAssistant from '../dashboard/FloatingAIAssistant';
 
 const DashboardLayout = ({ 
   children, 

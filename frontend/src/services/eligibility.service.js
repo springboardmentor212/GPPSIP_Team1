@@ -32,16 +32,12 @@
  * @property {RecommendedScheme[]} recommendations - Calculated matching schemes
  */
 
-import axios from 'axios';
+import api from './api';
 
-// Ready for future Backend configuration
-const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
-  withCredentials: true
-});
 
 /**
  * Assess eligibility and fetch matching schemes.
+ * PENDING BACKEND INTEGRATION: Connect this when eligibility matching API is implemented in backend.
  * Currently simulated via mock latency and mock JSON response.
  * 
  * @param {EligibilityRequest} requestData

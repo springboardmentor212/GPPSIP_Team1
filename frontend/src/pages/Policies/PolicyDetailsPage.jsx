@@ -3,12 +3,23 @@ import PolicyHeader from './PolicyHeader';
 import PolicyOverview from './PolicyOverview';
 import PolicyObjectives from './PolicyObjectives';
 import EligibilityCard from './EligibilityCard';
-import DocumentGrid from './DocumentGrid';
-import QuickActionPanel from './QuickActionPanel';
+import DocumentGrid from '../../components/common/DocumentGrid';
+import QuickActionPanel from '../../components/dashboard/QuickActionPanel';
 import RelatedPolicies from './RelatedPolicies';
-import Footer from './Footer';
+import Footer from '../../components/layout/Footer';
 
 const PolicyDetailsPage = ({ policy, onBack }) => {
+  // Map backend fields to frontend UI expectation
+  const mappedPolicy = React.useMemo(() => {
+    if (!policy) return null;
+    return {
+      ...policy,
+      publishedDate: policy.createdAt 
+        ? new Date(policy.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) 
+        : policy.publishedDate
+    };
+  }, [policy]);
+
   // Setup local bookmark state linked to the policy ID
   const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -17,7 +28,7 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
   };
 
   const handleDownloadPDF = () => {
-    alert(`Downloading official PDF for: ${policy?.title || "Comprehensive Data Privacy & Security Framework (DPSF) 2024"}`);
+    alert(`Downloading official PDF for: ${mappedPolicy?.title || "Comprehensive Data Privacy & Security Framework (DPSF) 2024"}`);
   };
 
   return (
@@ -27,7 +38,7 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8 flex-grow">
         
         {/* Policy Header (includes Breadcrumb, main card info and AI Insights) */}
-        <PolicyHeader policy={policy} onBack={onBack} />
+        <PolicyHeader policy={mappedPolicy} onBack={onBack} />
 
         {/* 2-Column Grid for Details & Quick Action Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -35,22 +46,22 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
           {/* Left Column - Main Details (2/3 width) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Overview */}
-            <PolicyOverview description={policy?.description} />
+            <PolicyOverview description={mappedPolicy?.description} />
 
             {/* Objectives */}
-            <PolicyObjectives objectives={policy?.objectives} />
+            <PolicyObjectives objectives={mappedPolicy?.objectives} />
 
             {/* Eligibility & Scope */}
-            <EligibilityCard eligibility={policy?.eligibility} />
+            <EligibilityCard eligibility={mappedPolicy?.eligibility} />
 
             {/* Required Documents */}
-            <DocumentGrid documents={policy?.documents} />
+            <DocumentGrid documents={mappedPolicy?.documents} />
           </div>
 
           {/* Right Column - Quick Actions (1/3 width) */}
           <div className="lg:col-span-1">
             <QuickActionPanel 
-              policyId={policy?.policyId || "POL-2024-DPSF-001"}
+              policyId={mappedPolicy?._id ? `POL-${mappedPolicy._id.substring(18).toUpperCase()}` : (mappedPolicy?.policyId || "POL-2024-DPSF-001")}
               isBookmarked={isBookmarked}
               onBookmarkToggle={handleBookmarkToggle}
               onDownloadPDF={handleDownloadPDF}
@@ -61,7 +72,7 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
 
         {/* Related Policies Section */}
         <div className="pt-4 border-t border-slate-300">
-          <RelatedPolicies relatedList={policy?.relatedList} />
+          <RelatedPolicies relatedList={mappedPolicy?.relatedList} />
         </div>
 
       </div>

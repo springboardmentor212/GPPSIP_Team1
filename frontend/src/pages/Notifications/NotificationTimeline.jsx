@@ -1,6 +1,6 @@
 import React from 'react';
 import TimelineSection from './TimelineSection';
-import NotificationCard from './NotificationCard';
+import NotificationCard from '../../components/cards/NotificationCard';
 
 const NotificationTimeline = ({ groupedNotifications = {}, onAction }) => {
   const sections = Object.keys(groupedNotifications);

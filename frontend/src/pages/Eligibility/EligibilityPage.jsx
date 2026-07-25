@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import EligibilityStepper from './EligibilityStepper';
-import FormCard from './FormCard';
-import EligibilityForm from './EligibilityForm';
-import NextButton from './NextButton';
-import SchemeCard from './SchemeCard';
-import { checkEligibility } from '../../services/eligibility.api';
+import EligibilityStepper from '../../components/common/EligibilityStepper';
+import FormCard from '../../components/common/FormCard';
+import EligibilityForm from '../../components/forms/EligibilityForm';
+import NextButton from '../../components/common/NextButton';
+import SchemeCard from '../../components/cards/SchemeCard';
+import { checkEligibility } from '../../services/eligibility.service';
 import { FaChevronLeft, FaSearch } from 'react-icons/fa';
 
 const EligibilityPage = () => {
@@ -116,6 +116,12 @@ const EligibilityPage = () => {
   return (
     <div className="w-full space-y-6 select-none">
       
+      {/* Pending integration banner */}
+      <div className="p-3 bg-amber-50 text-amber-850 border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-between">
+        <span>⚠️ Local Mock Mode Active: Eligibility matching is calculated in the browser. Automated profile assessment backend API connection is pending.</span>
+        <span className="px-2 py-0.5 bg-amber-105 rounded text-[10px] font-black uppercase text-amber-800">Pending Backend</span>
+      </div>
+
       {/* Step Indicator Stepper */}
       <EligibilityStepper currentStep={step} />
 

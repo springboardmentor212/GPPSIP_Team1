@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import FilterButton from './FilterButton';
-import ExportButton from './ExportButton';
+import FilterButton from '../../components/common/FilterButton';
+import ExportButton from '../../components/common/ExportButton';
 import SavedPolicyGrid from './SavedPolicyGrid';
 import BookmarkActivity from './BookmarkActivity';
-import Footer from './Footer';
+import Footer from '../../components/layout/Footer';
 
 const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
   const [savedList, setSavedList] = useState([
@@ -194,6 +194,12 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
   return (
     <div className="w-full space-y-8 select-none">
       
+      {/* Pending integration banner */}
+      <div className="p-3 bg-amber-50 text-amber-850 border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-between">
+        <span>⚠️ Local Mock Mode Active: Bookmarks are stored in local session. Persistent user bookmarks backend API connection is pending.</span>
+        <span className="px-2 py-0.5 bg-amber-105 rounded text-[10px] font-black uppercase text-amber-800">Pending Backend</span>
+      </div>
+
       {/* Page Header (Breadcrumbs, Title, Subtitle, Actions) */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 text-left">
         <div className="space-y-2">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaFileAlt, FaCheckSquare, FaUserCheck, FaSyncAlt, FaRegClock } from 'react-icons/fa';
-import NotificationBadge from './NotificationBadge';
-import NotificationAction from './NotificationAction';
+import NotificationBadge from '../../pages/Notifications/NotificationBadge';
+import NotificationAction from '../../pages/Notifications/NotificationAction';
 
 const NotificationCard = ({ 
   type, 

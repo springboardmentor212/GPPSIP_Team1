@@ -1,41 +1,43 @@
-import React, { useState } from 'react';
-import useAuth from '../features/auth/hooks/useAuth';
-import { Navigate, Link } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import useAuth from '../../hooks/useAuth';
+import { Navigate } from 'react-router';
 import { 
   FaCheckCircle, 
   FaBookmark, 
   FaClipboardList, 
   FaBell, 
   FaSearch, 
-  FaFolderOpen, 
-  FaRobot, 
   FaArrowRight, 
-  FaUserCheck, 
-  FaLock, 
-  FaCalendarAlt, 
-  FaGlobe,
   FaCloudUploadAlt,
   FaQuestionCircle
 } from 'react-icons/fa';
 
+// Import Layout Components
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import Footer from '../../components/layout/Footer';
+
 // Import Dashboard Subcomponents
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import WelcomeBanner from '../components/dashboard/WelcomeBanner';
-import StatsCard from '../components/dashboard/StatsCard';
-import RecommendationCard from '../components/dashboard/RecommendationCard';
-import AssistantPanel from '../components/dashboard/AssistantPanel';
-import QuickActionCard from '../components/dashboard/QuickActionCard';
-import ApplicationTrend from '../components/dashboard/ApplicationTrend';
-import SchemeCategoryCard from '../components/dashboard/SchemeCategoryCard';
-import DeadlineCard from '../components/dashboard/DeadlineCard';
-import NotificationList from '../components/dashboard/NotificationList';
-import Footer from '../components/dashboard/Footer';
-import PolicySearchPage from '../components/dashboard/PolicySearchPage';
-import PolicyDetailsPage from '../components/dashboard/PolicyDetailsPage';
-import GovernmentSchemesPage from '../components/dashboard/GovernmentSchemesPage';
-import EligibilityPage from '../components/dashboard/EligibilityPage';
-import SavedPoliciesPage from '../components/dashboard/SavedPoliciesPage';
-import NotificationsPage from '../components/dashboard/NotificationsPage';
+import WelcomeBanner from '../../components/dashboard/WelcomeBanner';
+import StatsCard from '../../components/cards/StatsCard';
+import RecommendationCard from '../../components/cards/RecommendationCard';
+import AssistantPanel from '../../components/dashboard/AssistantPanel';
+import QuickActionCard from '../../components/dashboard/QuickActionCard';
+import ApplicationTrend from '../../components/dashboard/ApplicationTrend';
+import SchemeCategoryCard from '../../components/dashboard/SchemeCategoryCard';
+import DeadlineCard from '../../components/cards/DeadlineCard';
+import NotificationList from '../../components/dashboard/NotificationList';
+
+// Import Standalone Pages
+import PolicySearchPage from '../Policies/PolicySearchPage';
+import PolicyDetailsPage from '../Policies/PolicyDetailsPage';
+import SavedPoliciesPage from '../Policies/SavedPoliciesPage';
+import GovernmentSchemesPage from '../Schemes/GovernmentSchemesPage';
+import EligibilityPage from '../Eligibility/EligibilityPage';
+import NotificationsPage from '../Notifications/NotificationsPage';
+import ApplicationsPage from '../Applications/ApplicationsPage';
+import ProfilePage from '../Profile/ProfilePage';
+import SettingsPage from '../Settings/SettingsPage';
+import AIAssistantPage from '../AIAssistant/AIAssistantPage';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
@@ -43,6 +45,25 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
   const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [dbStatus, setDbStatus] = useState('checking');
+
+  // Verify health check on load to report live connection status
+  useEffect(() => {
+    const verifyDatabaseConnection = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/health');
+        const data = await response.json();
+        if (data.success) {
+          setDbStatus('connected');
+        } else {
+          setDbStatus('disconnected');
+        }
+      } catch (err) {
+        setDbStatus('disconnected');
+      }
+    };
+    verifyDatabaseConnection();
+  }, []);
 
   // Protect route
   if (!user) {
@@ -238,27 +259,7 @@ const Dashboard = () => {
 
       case 'applications':
         return (
-          <div className="bg-white rounded-2xl border border-slate-300 p-6 sm:p-8 min-h-[480px]">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-300 flex items-center gap-2.5">
-              <FaClipboardList className="text-[#0052cc]" /> Applications Portal
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 border border-slate-300 rounded-2xl flex justify-between items-center bg-slate-50/50">
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm">Post-Matric Scholarship Scheme</h4>
-                  <span className="text-[10px] text-slate-400 font-bold block mt-1">Ref ID: PM-98218 • Submitted: 12 July 2026</span>
-                </div>
-                <span className="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-105 rounded-lg text-xs font-bold">Under Review</span>
-              </div>
-              <div className="p-4 border border-slate-300 rounded-2xl flex justify-between items-center bg-slate-50/50">
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm">PM Kisan Subsidies</h4>
-                  <span className="text-[10px] text-slate-400 font-bold block mt-1">Ref ID: PM-12891 • Approved: 25 June 2026</span>
-                </div>
-                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg text-xs font-bold">Approved</span>
-              </div>
-            </div>
-          </div>
+          <ApplicationsPage />
         );
 
       case 'saved':
@@ -276,87 +277,17 @@ const Dashboard = () => {
 
       case 'ai':
         return (
-          <div className="bg-white rounded-2xl border border-slate-300 p-6 sm:p-8 min-h-[480px]">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-300 flex items-center gap-2.5">
-              <FaRobot className="text-[#0052cc]" /> AI Assistant Hub
-            </h2>
-            <div className="max-w-3xl mx-auto mt-4">
-              <AssistantPanel />
-            </div>
-          </div>
+          <AIAssistantPage />
         );
 
       case 'profile':
         return (
-          <div className="bg-white rounded-2xl border border-slate-300 p-6 sm:p-8">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-300">My Profile Details</h2>
-            <div className="flex items-center gap-6 mb-8">
-              <div className="w-20 h-20 rounded-full bg-[#0052cc] flex items-center justify-center text-white text-3xl font-bold uppercase shadow-sm">
-                {user.fullName.charAt(0)}
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">{user.fullName}</h3>
-                <span className="inline-block px-3 py-1 bg-blue-50 text-[#0052cc] text-xs font-bold uppercase tracking-wider rounded-full mt-2 border border-blue-100">
-                  {user.role}
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Email Address</span>
-                <span className="text-base font-medium text-slate-800">{user.email}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Mobile Number</span>
-                <span className="text-base font-medium text-slate-800">{user.mobile}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Date of Birth</span>
-                <span className="text-base font-medium text-slate-800">
-                  {new Date(user.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</span>
-                <span className="text-base font-medium text-slate-800">{user.district}, {user.state}</span>
-              </div>
-            </div>
-          </div>
+          <ProfilePage user={user} />
         );
 
       case 'settings':
         return (
-          <div className="bg-white rounded-2xl border border-slate-300 p-6 sm:p-8 min-h-[480px]">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b border-slate-300 font-black">Account Settings</h2>
-            <div className="space-y-6 max-w-md">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-700">Email Notifications</h4>
-                  <span className="text-xs text-slate-400">Receive alerts when new schemes match your profile</span>
-                </div>
-                <input type="checkbox" defaultChecked className="rounded border-slate-300 text-[#0052cc]" />
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-700">Language</h4>
-                  <span className="text-xs text-slate-400">Select your preferred system language</span>
-                </div>
-                <select className="px-3 py-1 border rounded-lg text-xs bg-white">
-                  <option>English</option>
-                  <option>Marathi (मराठी)</option>
-                  <option>Hindi (हिंदी)</option>
-                </select>
-              </div>
-              <div className="pt-4 border-t border-slate-300 flex justify-between items-center">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-700">Database Connection</h4>
-                  <span className="text-xs text-rose-500 font-medium">No connection: Local Mock Mode Active</span>
-                </div>
-                <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded border border-rose-100 text-[10px] font-bold uppercase">Disconnected</span>
-              </div>
-            </div>
-          </div>
+          <SettingsPage dbStatus={dbStatus} />
         );
 
       default:
@@ -378,3 +309,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

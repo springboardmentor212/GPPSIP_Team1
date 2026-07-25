@@ -1,6 +1,6 @@
 import React from 'react';
-import SavedPolicyCard from './SavedPolicyCard';
-import EmptySavedPolicyCard from './EmptySavedPolicyCard';
+import SavedPolicyCard from '../../components/cards/SavedPolicyCard';
+import EmptySavedPolicyCard from '../../components/cards/EmptySavedPolicyCard';
 
 const SavedPolicyGrid = ({ savedList = [], onQuickOpen, onRemove, onBrowse }) => {
   return (

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import NotificationHeader from './NotificationHeader';
 import NotificationTabs from './NotificationTabs';
 import NotificationTimeline from './NotificationTimeline';
-import LoadMoreButton from './LoadMoreButton';
-import Footer from './Footer';
+import LoadMoreButton from '../../components/common/LoadMoreButton';
+import Footer from '../../components/layout/Footer';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([
@@ -124,6 +124,12 @@ const NotificationsPage = () => {
   return (
     <div className="w-full space-y-8 select-none">
       
+      {/* Pending integration banner */}
+      <div className="p-3 bg-amber-50 text-amber-850 border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-between">
+        <span>⚠️ Local Mock Mode Active: Notifications are simulated. Real-time notifications backend API connection is pending.</span>
+        <span className="px-2 py-0.5 bg-amber-105 rounded text-[10px] font-black uppercase text-amber-800">Pending Backend</span>
+      </div>
+
       {/* Page Header (Title, Subtitle, Actions) */}
       <NotificationHeader 
         onMarkAllRead={handleMarkAllRead} 
