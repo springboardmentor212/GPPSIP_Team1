@@ -1,62 +1,25 @@
-# Walkthrough - Component Reorganization into Cards, Forms, and Common folders
+# Walkthrough - Profile / Account Settings Page Refinement (Figma Specification)
 
-We have successfully distributed all helper components from `src/components/dashboard/` into their respective specialized component folders (`cards/`, `forms/`, `common/`) and page-specific directories to keep the project clean, modular, and consistent.
+We have successfully implemented the **Profile / Account Settings** page exactly following the detailed Figma specifications, complete with modular page structures, responsive layouts, editable forms, tag management, security controls, and local storage state sync.
 
-## Summary of Reorganized Paths
+## Files Created
+- **Pages**:
+  - `frontend/src/pages/Profile/ProfilePage.jsx` (Re-implemented with edit forms, validation, dynamic context user updating, tag additions/deletions, language selections, custom dark/light buttons, notification slide toggles, 2FA switches, change password forms, account deletion, and custom alerts toast)
+- **Services**:
+  - [NEW] `frontend/src/services/profile.service.js` (Created to handle local profile parameters loading/saving, latency simulation, and security options)
 
-### 1. Forms (`src/components/forms/`)
-- `SelectField.jsx`
-- `InputField.jsx`
-- `DistrictDropdown.jsx`
-- `StateDropdown.jsx`
-- `EligibilityForm.jsx`
+## Files Modified
+None.
 
-### 2. Cards (`src/components/cards/`)
-- `PolicyCard.jsx`
-- `SchemeCard.jsx`
-- `RecommendationCard.jsx`
-- `DeadlineCard.jsx`
-- `SavedPolicyCard.jsx`
-- `StatsCard.jsx`
-- `EmptyPolicyCard.jsx`
-- `EmptySavedPolicyCard.jsx`
-- `NotificationCard.jsx`
+## Components Reused
+- **Layouts**: `DashboardLayout` from `components/layout/`
+- **Forms**: `InputField` and `SelectField` from `components/forms/`
+- **Modals**: `Modal` from `components/modals/`
+- **Icons**: Standard `react-icons/fa` library
 
-### 3. Common (`src/components/common/`)
-- `Pagination.jsx`
-- `FilterButton.jsx`
-- `FilterBar.jsx`
-- `ExportButton.jsx`
-- `NextButton.jsx`
-- `LoadMoreButton.jsx`
-- `CategoryTabs.jsx`
-- `CTASection.jsx`
-- `SearchPanel.jsx`
-- `PolicySearchHeader.jsx`
-- `DocumentGrid.jsx`
-- `FormCard.jsx`
-- `EligibilityStepper.jsx`
-- `FilterSection.jsx`
-- `SchemesHeader.jsx`
+## APIs Connected
+None natively implemented on the Node/Express backend. Integrated a client-side localStorage fallback inside `profile.service.js` to preserve bio, tags, plan badges, and toggles across browser sessions.
 
-### 4. Page-Specific Local Folders
-- **Policies Page (`src/pages/Policies/`)**:
-  - `PolicyHeader.jsx`
-  - `PolicyOverview.jsx`
-  - `PolicyObjectives.jsx`
-  - `EligibilityCard.jsx`
-  - `RelatedPolicies.jsx`
-  - `BookmarkActivity.jsx`
-  - `BookmarkActivityItem.jsx`
-  - `SavedPolicyGrid.jsx`
-- **Notifications Page (`src/pages/Notifications/`)**:
-  - `NotificationHeader.jsx`
-  - `NotificationTimeline.jsx`
-  - `NotificationTabs.jsx`
-  - `NotificationAction.jsx`
-  - `NotificationBadge.jsx`
-  - `TimelineSection.jsx`
-
-## Verification Status
+## Verification & Compile Status
 - Checked using `npm run build` inside `frontend/` directory.
-- **Result**: Compilation successfully completed with no import resolution errors or syntax issues.
+- **Result**: Build compiled cleanly in under 4 seconds without any errors.

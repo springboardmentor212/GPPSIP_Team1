@@ -7,6 +7,7 @@ const StatsCard = ({ title, value, growth, growthType, icon: Icon, color = 'blue
       case 'green': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
       case 'purple': return 'text-purple-600 bg-purple-50 border-purple-100';
       case 'orange': return 'text-amber-600 bg-amber-50 border-amber-100';
+      case 'red': return 'text-rose-600 bg-rose-50 border-rose-100';
       default: return 'text-slate-600 bg-slate-50 border-slate-100';
     }
   };
