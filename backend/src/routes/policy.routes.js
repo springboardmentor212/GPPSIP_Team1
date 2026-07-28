@@ -4,7 +4,8 @@ const {
     getPolicies, 
     getPolicyById, 
     updatePolicy, 
-    updatePolicyStatus 
+    updatePolicyStatus,
+    comparePolicies
 } = require('../controllers/policy.controller');
 const identifyUser = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/role.middleware');
@@ -16,6 +17,8 @@ const {
 } = require('../validations/policy.validation');
 
 const policyRouter = express.Router();
+
+policyRouter.get('/compare', comparePolicies);
 
 /**
  * @route POST /api/policies

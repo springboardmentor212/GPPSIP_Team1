@@ -88,18 +88,68 @@ const updatePolicy = async (req, res, next) => {
  */
 const updatePolicyStatus = async (req, res, next) => {
     try {
-        const { status } = req.body;
-        const policy = await Policy.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true, runValidators: true }
-        );
+        const { status: newStatus } = req.body;
 
+        const policy = await Policy.findById(req.params.id);
         if (!policy) {
             return res.status(404).json({ success: false, message: 'Policy not found' });
         }
 
-        res.status(200).json({ success: true, message: `Policy status updated to ${status}`, policy });
+        // Self-action restriction:
+        // Creators can move their own Draft to Pending.
+        // They cannot perform reviewer actions (Approved/Archived) on their own work.
+        const reviewerActions = ['Approved', 'Archived'];
+        if (reviewerActions.includes(newStatus) && policy.creator.toString() === req.user.id) {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Creators cannot approve or archive their own policies' 
+            });
+        }
+
+        // Workflow state transition mapping
+        const allowedTransitions = {
+            'Draft': ['Pending'],
+            'Pending': ['Approved', 'Draft'],
+            'Approved': ['Archived'],
+            'Archived': []
+        };
+
+        // Validate transition
+        if (!allowedTransitions[policy.status]?.includes(newStatus)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Invalid status transition from ${policy.status} to ${newStatus}` 
+            });
+        }
+
+        // Apply update
+        policy.status = newStatus;
+        await policy.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Policy status updated to ${newStatus}`, 
+            policy 
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const comparePolicies = async (req, res, next) => {
+    try {
+        const { id1, id2 } = req.query;
+        if (!id1 || !id2) {
+            return res.status(400).json({ success: false, message: 'Two policy IDs required' });
+        }
+        const [policy1, policy2] = await Promise.all([
+            Policy.findById(id1),
+            Policy.findById(id2)
+        ]);
+        if (!policy1 || !policy2) {
+            return res.status(404).json({ success: false, message: 'Policy not found' });
+        }
+        res.status(200).json({ success: true, comparison: { policy1, policy2 } });
     } catch (error) {
         next(error);
     }
@@ -110,5 +160,6 @@ module.exports = {
     getPolicies,
     getPolicyById,
     updatePolicy,
-    updatePolicyStatus
+    updatePolicyStatus,
+    comparePolicies
 };
