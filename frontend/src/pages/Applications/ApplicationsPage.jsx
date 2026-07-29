@@ -69,10 +69,10 @@ const ApprovalsDashboard = () => {
         const mappedPolicies = policiesRes.policies
           .map(p => ({
             id: p._id,
-            displayId: `POL-${p._id.substring(18).toUpperCase()}`,
-            title: p.title,
-            department: p.department,
-            date: p.createdAt,
+            displayId: `POL-${(p._id || '').slice(-6).toUpperCase() || 'UNKNOWN'}`,
+            title: p.title || 'Untitled Policy',
+            department: p.department || 'Unknown Department',
+            date: p.createdAt || new Date().toISOString(),
             type: 'Policy',
             status: p.status || 'Pending'
           }));
@@ -83,10 +83,10 @@ const ApprovalsDashboard = () => {
         const mappedSchemes = schemesRes.schemes
           .map(s => ({
             id: s._id,
-            displayId: `SCH-${s._id.substring(18).toUpperCase()}`,
-            title: s.title,
-            department: s.ministry || s.department,
-            date: s.createdAt,
+            displayId: `SCH-${(s._id || '').slice(-6).toUpperCase() || 'UNKNOWN'}`,
+            title: s.title || 'Untitled Scheme',
+            department: s.ministry || s.department || 'Unknown Department',
+            date: s.createdAt || new Date().toISOString(),
             type: 'Scheme',
             status: s.status || 'Pending'
           }));
