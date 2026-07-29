@@ -393,7 +393,7 @@ const ApprovalsDashboard = () => {
                                   </>
                                 )}
                                 <button
-                                  onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/dashboard?tab=schemes`)}
+                                  onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/scheme/${item.id}`)}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border-none ml-1"
                                 >
                                   <FaEye className="w-3 h-3" /> View

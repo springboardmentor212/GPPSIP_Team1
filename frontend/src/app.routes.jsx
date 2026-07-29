@@ -4,6 +4,7 @@ import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import StandalonePolicyPage from "./pages/Policies/StandalonePolicyPage";
+import StandaloneSchemePage from "./pages/Schemes/StandaloneSchemePage";
 import useAuth from "./hooks/useAuth";
 
 const GuestRoute = ({ children }) => {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
     {
         path: "/policy/:id",
         element: <StandalonePolicyPage />,
+    },
+    {
+        path: "/scheme/:id",
+        element: <StandaloneSchemePage />,
     }
 ]);
 
