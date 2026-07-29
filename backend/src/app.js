@@ -17,10 +17,12 @@ app.use(cookieParser());
 const authRouter = require('./routes/auth.routes');
 const policyRouter = require('./routes/policy.routes');
 const schemeRouter = require('./routes/scheme.routes');
+const approvalRouter = require('./routes/approval.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
 app.use('/api/policies', policyRouter);
+app.use('/api/policies', approvalRouter);
 app.use('/api/schemes', schemeRouter);
 
 /* health check route */

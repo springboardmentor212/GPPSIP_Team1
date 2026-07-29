@@ -5,7 +5,7 @@ const policyCategories = [
   'Women & Child Welfare', 'Housing', 'Environment', 'Digital Governance', 'Infrastructure'
 ];
 
-const policyStatuses = ['Draft', 'Pending', 'Approved', 'Archived'];
+const policyStatuses = ['Draft', 'Pending', 'Approved', 'Rejected', 'Archived'];
 
 const createPolicySchema = z.object({
   body: z.object({
