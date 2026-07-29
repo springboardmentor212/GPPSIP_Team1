@@ -197,18 +197,22 @@ const ApprovalsDashboard = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => setPolicyModalOpen(true)}
-                className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
-              >
-                <FaFileAlt className="text-slate-400" /> New Policy
-              </button>
-              <button
-                onClick={() => setSchemeModalOpen(true)}
-                className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-colors cursor-pointer border-none"
-              >
-                <FaPlus /> New Scheme
-              </button>
+              {user?.role === 'Gov. Official' && (
+                <>
+                  <button
+                    onClick={() => setPolicyModalOpen(true)}
+                    className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+                  >
+                    <FaFileAlt className="text-slate-400" /> New Policy
+                  </button>
+                  <button
+                    onClick={() => setSchemeModalOpen(true)}
+                    className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-colors cursor-pointer border-none"
+                  >
+                    <FaPlus /> New Scheme
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -363,7 +367,7 @@ const ApprovalsDashboard = () => {
                             </td>
                             <td className="p-4 text-right">
                               <div className="flex items-center justify-end gap-2">
-                                {item.type === 'Policy' && item.status === 'Draft' && (
+                                {item.type === 'Policy' && item.status === 'Draft' && user?.role === 'Gov. Official' && (
                                   <button
                                     onClick={() => handleAction('submit', item.type, item.id)}
                                     className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-[#0052cc] rounded text-xs font-bold transition-colors cursor-pointer border-none"
@@ -371,7 +375,7 @@ const ApprovalsDashboard = () => {
                                     Submit
                                   </button>
                                 )}
-                                {item.type === 'Policy' && item.status === 'Pending' && (
+                                {item.type === 'Policy' && item.status === 'Pending' && user?.role === 'Admin' && (
                                   <>
                                     <button
                                       onClick={() => handleAction('approve', item.type, item.id)}
