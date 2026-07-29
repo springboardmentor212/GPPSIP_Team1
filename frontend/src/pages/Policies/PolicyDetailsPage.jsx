@@ -58,14 +58,40 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
             <DocumentGrid documents={mappedPolicy?.documents} />
           </div>
 
-          {/* Right Column - Quick Actions (1/3 width) */}
-          <div className="lg:col-span-1">
+          {/* Right Column - Quick Actions & Approval (1/3 width) */}
+          <div className="lg:col-span-1 space-y-6">
             <QuickActionPanel 
               policyId={mappedPolicy?._id ? `POL-${mappedPolicy._id.substring(18).toUpperCase()}` : (mappedPolicy?.policyId || "POL-2024-DPSF-001")}
               isBookmarked={isBookmarked}
               onBookmarkToggle={handleBookmarkToggle}
               onDownloadPDF={handleDownloadPDF}
             />
+
+            {/* Approval Workflow Panel (Visible to Admins/Managers) */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col space-y-4">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Manager Review</h3>
+              
+              <div className="flex flex-col space-y-2">
+                <label className="text-xs font-semibold text-slate-500">Review Comments</label>
+                <textarea 
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#0052cc] focus:border-transparent transition-all outline-none resize-none"
+                  rows="3"
+                  placeholder="Enter comments before approving or rejecting..."
+                ></textarea>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                  Approve Policy
+                </button>
+                <button className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+                  Reject Policy
+                </button>
+                <button className="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold rounded-xl transition-colors">
+                  Submit for Review
+                </button>
+              </div>
+            </div>
           </div>
 
         </div>
