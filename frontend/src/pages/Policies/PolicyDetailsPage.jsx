@@ -59,13 +59,36 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
           </div>
 
           {/* Right Column - Quick Actions (1/3 width) */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
             <QuickActionPanel 
               policyId={mappedPolicy?._id ? `POL-${mappedPolicy._id.substring(18).toUpperCase()}` : (mappedPolicy?.policyId || "POL-2024-DPSF-001")}
               isBookmarked={isBookmarked}
               onBookmarkToggle={handleBookmarkToggle}
               onDownloadPDF={handleDownloadPDF}
             />
+            {mappedPolicy?._id && (
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`http://localhost:3000/api/policies/${mappedPolicy._id}/submit`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ comments: 'Approved via UI' })
+                    });
+                    if (response.ok) {
+                      alert('Policy successfully submitted for approval to backend!');
+                    } else {
+                      alert('Failed to submit policy to backend.');
+                    }
+                  } catch (e) {
+                    alert('Error hitting backend approval endpoint.');
+                  }
+                }}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transition-colors"
+              >
+                Submit for Approval
+              </button>
+            )}
           </div>
 
         </div>
