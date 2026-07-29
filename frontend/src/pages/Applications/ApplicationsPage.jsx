@@ -17,6 +17,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Footer from '../../components/layout/Footer';
 import PolicyFormModal from '../../components/modals/PolicyFormModal';
 import SchemeFormModal from '../../components/modals/SchemeFormModal';
+import Pagination from '../../components/common/Pagination';
 
 // Import Services
 import { getPolicies } from '../../services/policy.service';
