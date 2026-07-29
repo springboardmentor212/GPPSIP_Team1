@@ -35,61 +35,15 @@
 import api from './api';
 
 
-/**
- * Assess eligibility and fetch matching schemes.
- * PENDING BACKEND INTEGRATION: Connect this when eligibility matching API is implemented in backend.
- * Currently simulated via mock latency and mock JSON response.
- * 
- * @param {EligibilityRequest} requestData
- * @returns {Promise<EligibilityResponse>}
- */
 export async function checkEligibility(requestData) {
-  // Simulate network latency (800ms)
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  // In simulated environment, return mock recommendations based on the form values
-  const mockRecommendations = [
-    {
-      id: 201,
-      title: "MSME Digital Credit Facilitation",
-      ministry: "Ministry of Finance",
-      eligibilityTag: "Eligible",
-      matchPercentage: requestData.annualIncome < 300000 ? 95 : 85,
-      description: "Providing low-interest credit and digital infrastructure support to emerging small and medium enterprises in...",
-      maxBenefit: "$50,000 Grants",
-      deadline: "Oct 24, 2024",
-      category: "Small Business (MSME)",
-      tags: ["IT", "FIN", "+3"]
-    },
-    {
-      id: 203,
-      title: "Cybersecurity Talent Pipeline",
-      ministry: "Department of National Security",
-      eligibilityTag: "Eligible",
-      matchPercentage: requestData.age < 30 ? 92 : 80,
-      description: "Scholarships and placement programs for graduate students specializing in defense-grade cybersecurity...",
-      maxBenefit: "Full Tuition",
-      deadline: "Aug 01, 2024",
-      category: "Education & Research",
-      tags: ["GRADUATE", "TECH"]
-    },
-    {
-      id: 206,
-      title: "Rural Telemedicine Network Grant",
-      ministry: "Ministry of Health & Family Welfare",
-      eligibilityTag: "Eligible",
-      matchPercentage: requestData.state === "Maharashtra" ? 90 : 85,
-      description: "Subsidies for clinic infrastructure and high-speed satellite internet enablement in Tier-3 rural locations.",
-      maxBenefit: "₹25 Lakhs Support",
-      deadline: "Jan 10, 2025",
-      category: "Healthcare",
-      tags: ["MED", "RURAL"]
+  try {
+    // The backend uses POST /api/schemes/check-eligibility
+    const response = await api.post('/schemes/check-eligibility', requestData);
+    return response.data;
+  } catch (error) {
+    if (error.response && error.response.data) {
+      return error.response.data;
     }
-  ];
-
-  return {
-    success: true,
-    message: "Eligibility processed successfully.",
-    recommendations: mockRecommendations
-  };
+    throw error;
+  }
 }

@@ -4,7 +4,7 @@ import SearchPanel from '../../components/common/SearchPanel';
 import PolicyCard from '../../components/cards/PolicyCard';
 import EmptyPolicyCard from '../../components/cards/EmptyPolicyCard';
 import Pagination from '../../components/common/Pagination';
-import { getPolicies } from '../../services/policy.service';
+import { searchAll } from '../../services/search.service';
 
 const PolicySearchPage = ({ onReadMore }) => {
   // State for database policies
@@ -34,7 +34,7 @@ const PolicySearchPage = ({ onReadMore }) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getPolicies();
+      const data = await searchAll(appliedSearchQuery, filters.category, filters.department, filters.status);
       if (data.success && Array.isArray(data.policies)) {
         setPolicies(data.policies);
       } else {
@@ -50,7 +50,7 @@ const PolicySearchPage = ({ onReadMore }) => {
 
   useEffect(() => {
     fetchPoliciesData();
-  }, []);
+  }, [appliedSearchQuery, filters]);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -103,57 +103,8 @@ const PolicySearchPage = ({ onReadMore }) => {
     }
   };
 
-  // Filter & Sort Logic
-  const filteredPolicies = policies.filter((policy) => {
-    const policyTitle = policy.title || '';
-    const policyId = policy._id || policy.policyId || '';
-    const policyDesc = policy.description || '';
-    const policyCategory = policy.category || '';
-    const policyLocation = policy.location || 'Federal';
-    const policyDept = policy.department || '';
-    const policyStatus = policy.status || 'Active';
-
-    // 1. Search Query filter (matches Title, Policy ID, Description)
-    if (appliedSearchQuery) {
-      const query = appliedSearchQuery.toLowerCase();
-      const matchesTitle = policyTitle.toLowerCase().includes(query);
-      const matchesId = policyId.toLowerCase().includes(query);
-      const matchesDesc = policyDesc.toLowerCase().includes(query);
-      if (!matchesTitle && !matchesId && !matchesDesc) {
-        return false;
-      }
-    }
-    // 2. Category filter
-    if (filters.category !== 'All Categories' && policyCategory.toLowerCase() !== filters.category.toLowerCase()) {
-      return false;
-    }
-    // 3. State filter
-    if (filters.state !== 'All States' && policyLocation.toLowerCase() !== filters.state.toLowerCase()) {
-      return false;
-    }
-    // 4. Department filter
-    if (filters.department !== 'All Depts' && policyDept.toLowerCase() !== filters.department.toLowerCase()) {
-      return false;
-    }
-    // 5. Ministry filter
-    const policyMinistry = policy.ministry || policy.department || '';
-    if (filters.ministry !== 'All Ministries' && policyMinistry.toLowerCase() !== filters.ministry.toLowerCase()) {
-      return false;
-    }
-    // 6. Status filter
-    if (filters.status !== 'All Statuses' && policyStatus.toLowerCase() !== filters.status.toLowerCase()) {
-      return false;
-    }
-    // 7. Date filter
-    const policyDateStr = policy.createdAt ? new Date(policy.createdAt).toISOString().split('T')[0] : '';
-    if (filters.date && policyDateStr !== filters.date) {
-      return false;
-    }
-    return true;
-  });
-
   // Sort list
-  const sortedPolicies = [...filteredPolicies].sort((a, b) => {
+  const sortedPolicies = [...policies].sort((a, b) => {
     const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
     const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
     if (sortBy === 'Newest First') {
