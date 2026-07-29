@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Check, X, ShieldAlert } from 'lucide-react';
 import Footer from '../../components/layout/Footer';
 import { getPolicies } from '../../services/policy.service';
-import { comparePolicies } from '../../services/comparison.service';
+import { getSchemes } from '../../services/scheme.service';
+import { comparePolicies, compareSchemes } from '../../services/comparison.service';
 
 const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
   const [itemsToCompare, setItemsToCompare] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [compareType, setCompareType] = useState('policies');
 
   useEffect(() => {
     const fetchComparisonData = async () => {
@@ -14,17 +16,32 @@ const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
       try {
         let idsToCompare = preSelectedItems;
         if (!idsToCompare || idsToCompare.length < 2) {
-          // Fallback if not enough items selected: fetch default 2 policies
-          const defaultData = await getPolicies();
-          if (defaultData.success && Array.isArray(defaultData.policies)) {
-            idsToCompare = defaultData.policies.slice(0, 2).map(p => p._id);
+          // Fallback if not enough items selected: fetch default 2 items based on compareType
+          if (compareType === 'policies') {
+            const defaultData = await getPolicies();
+            if (defaultData.success && Array.isArray(defaultData.policies)) {
+              idsToCompare = defaultData.policies.slice(0, 2).map(p => p._id);
+            }
+          } else {
+            const defaultData = await getSchemes();
+            if (defaultData.success && Array.isArray(defaultData.schemes)) {
+              idsToCompare = defaultData.schemes.slice(0, 2).map(p => p._id);
+            }
           }
         }
         
         if (idsToCompare.length >= 2) {
-          const data = await comparePolicies(idsToCompare);
-          if (data.success && data.comparison && data.comparison.policies) {
-            setItemsToCompare(data.comparison.policies);
+          let data;
+          if (compareType === 'policies') {
+            data = await comparePolicies(idsToCompare);
+            if (data.success && data.comparison && data.comparison.policies) {
+              setItemsToCompare(data.comparison.policies);
+            }
+          } else {
+            data = await compareSchemes(idsToCompare);
+            if (data.success && data.comparison && data.comparison.schemes) {
+              setItemsToCompare(data.comparison.schemes);
+            }
           }
         }
       } catch (err) {
@@ -34,7 +51,7 @@ const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
       }
     };
     fetchComparisonData();
-  }, [preSelectedItems]);
+  }, [preSelectedItems, compareType]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -49,8 +66,22 @@ const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Compare Policies</h1>
-            <p className="text-sm text-slate-500">Side-by-side analysis of policy specifications and benefits</p>
+            <h1 className="text-2xl font-bold text-slate-900">Compare {compareType === 'policies' ? 'Policies' : 'Schemes'}</h1>
+            <p className="text-sm text-slate-500">Side-by-side analysis of specifications and benefits</p>
+          </div>
+          <div className="flex bg-slate-200 p-1 rounded-xl ml-auto">
+            <button
+              onClick={() => setCompareType('policies')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${compareType === 'policies' ? 'bg-white text-[#0052cc] shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}
+            >
+              Policies
+            </button>
+            <button
+              onClick={() => setCompareType('schemes')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${compareType === 'schemes' ? 'bg-white text-[#0052cc] shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}
+            >
+              Schemes
+            </button>
           </div>
         </div>
 
@@ -75,9 +106,9 @@ const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-slate-700">
                   <tr className="hover:bg-slate-50">
-                    <td className="p-4 font-semibold text-slate-900 bg-slate-50/50">Department</td>
+                    <td className="p-4 font-semibold text-slate-900 bg-slate-50/50">Department/Ministry</td>
                     {itemsToCompare.map((item, idx) => (
-                      <td key={idx} className="p-4 border-l border-slate-200">{item.department}</td>
+                      <td key={idx} className="p-4 border-l border-slate-200">{item.department || item.ministry || 'N/A'}</td>
                     ))}
                   </tr>
                   <tr className="hover:bg-slate-50">

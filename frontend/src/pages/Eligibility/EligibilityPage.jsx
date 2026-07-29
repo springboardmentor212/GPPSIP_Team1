@@ -6,7 +6,7 @@ import NextButton from '../../components/common/NextButton';
 import SchemeCard from '../../components/cards/SchemeCard';
 import { checkSchemeEligibility } from '../../services/eligibility.service';
 import { getSchemes } from '../../services/scheme.service';
-import { FaChevronLeft, FaSearch, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaChevronLeft, FaSearch, FaCheckCircle, FaTimesCircle, FaFileAlt } from 'react-icons/fa';
 
 const EligibilityPage = () => {
   const [step, setStep] = useState(1);
@@ -220,11 +220,24 @@ const EligibilityPage = () => {
                 <p className="text-sm font-semibold text-slate-500 mb-8 max-w-md mx-auto leading-relaxed">
                   Great news! Based on the credentials provided, you meet all the eligibility criteria for the selected scheme.
                 </p>
+
+                <div className="mt-8 mb-8 text-left bg-emerald-50 rounded-2xl p-6 border border-emerald-100 max-w-lg mx-auto">
+                  <h4 className="text-sm font-black text-emerald-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <FaFileAlt className="text-emerald-600" /> Application Guidance
+                  </h4>
+                  <ol className="list-decimal pl-5 space-y-3 text-xs font-semibold text-emerald-800">
+                    <li>Prepare your Aadhar Card, Income Certificate, and recent passport-size photographs.</li>
+                    <li>Ensure your linked bank account is active for direct benefit transfers (DBT).</li>
+                    <li>Click the button below to navigate to the official application portal.</li>
+                    <li>Complete the registration using your verified credentials.</li>
+                  </ol>
+                </div>
+
                 <button 
-                  onClick={() => alert('Proceeding to Application Wizard')}
+                  onClick={() => window.open('https://www.india.gov.in', '_blank')}
                   className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold shadow-md shadow-green-600/20 transition-all cursor-pointer border-none"
                 >
-                  Apply Now
+                  Proceed to Official Portal
                 </button>
               </div>
             ) : (
