@@ -26,3 +26,17 @@ export async function getSchemeById(id) {
     throw error;
   }
 }
+
+/**
+ * Create a new scheme
+ * @param {Object} schemeData
+ * @returns {Promise<{ success: boolean, scheme: Object }>}
+ */
+export async function createScheme(schemeData) {
+  try {
+    const response = await api.post('/schemes', schemeData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

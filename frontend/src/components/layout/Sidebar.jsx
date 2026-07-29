@@ -20,7 +20,9 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
     { id: 'search', label: 'Policy Search', icon: FaSearch },
     { id: 'schemes', label: 'Government Schemes', icon: FaBook },
     { id: 'eligibility', label: 'Eligibility Checker', icon: FaUserCheck },
-    { id: 'applications', label: 'Applications', icon: FaClipboardList },
+    ...(user && (user.role === 'Gov. Official' || user.role === 'Admin') 
+      ? [{ id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }] 
+      : []),
     { id: 'saved', label: 'Saved Policies', icon: FaBookmark },
     { id: 'notifications', label: 'Notifications', icon: FaBell },
     { id: 'ai', label: 'AI Assistant', icon: FaRobot },

@@ -4,8 +4,9 @@ import FormCard from '../../components/common/FormCard';
 import EligibilityForm from '../../components/forms/EligibilityForm';
 import NextButton from '../../components/common/NextButton';
 import SchemeCard from '../../components/cards/SchemeCard';
-import { checkEligibility } from '../../services/eligibility.service';
-import { FaChevronLeft, FaSearch } from 'react-icons/fa';
+import { checkSchemeEligibility } from '../../services/eligibility.service';
+import { getSchemes } from '../../services/scheme.service';
+import { FaChevronLeft, FaSearch, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const EligibilityPage = () => {
   const [step, setStep] = useState(1);
@@ -23,8 +24,25 @@ const EligibilityPage = () => {
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
-  const [bookmarkedIds, setBookmarkedIds] = useState([]);
+  const [eligibilityResult, setEligibilityResult] = useState(null);
+  
+  const [schemes, setSchemes] = useState([]);
+  const [selectedSchemeId, setSelectedSchemeId] = useState('');
+
+  // Fetch schemes on mount
+  React.useEffect(() => {
+    const fetchSchemes = async () => {
+      try {
+        const res = await getSchemes();
+        if (res.success && Array.isArray(res.schemes)) {
+          setSchemes(res.schemes);
+        }
+      } catch (err) {
+        console.error("Failed to load schemes for eligibility check", err);
+      }
+    };
+    fetchSchemes();
+  }, []);
 
   // Handles input values and dependent state resets
   const handleInputChange = (e) => {
@@ -49,6 +67,10 @@ const EligibilityPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    if (!selectedSchemeId) {
+      newErrors.scheme = "Please select a scheme to verify eligibility against";
+    }
 
     // Validate Age
     if (!formData.age) {
@@ -98,9 +120,24 @@ const EligibilityPage = () => {
 
     setLoading(true);
     try {
-      const response = await checkEligibility(formData);
+      // Map frontend form to backend expectations
+      const mappedData = {
+        age: parseInt(formData.age, 10),
+        gender: formData.gender,
+        income: parseFloat(formData.annualIncome),
+        occupation: formData.occupation,
+        education: formData.education,
+        location: formData.state, // Backend expects location
+        socialCategory: formData.socialCategory,
+        disabilityStatus: formData.disabilityStatus === 'Yes' // Convert to boolean
+      };
+
+      const response = await checkSchemeEligibility(selectedSchemeId, mappedData);
       if (response.success) {
-        setRecommendations(response.recommendations);
+        setEligibilityResult({
+          eligible: response.eligible,
+          failedCriteria: response.failedCriteria || []
+        });
         setStep(2);
       } else {
         alert(response.message || "Failed to calculate eligibility.");
@@ -116,11 +153,7 @@ const EligibilityPage = () => {
   return (
     <div className="w-full space-y-6 select-none">
       
-      {/* Pending integration banner */}
-      <div className="p-3 bg-amber-50 text-amber-850 border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-between">
-        <span>⚠️ Local Mock Mode Active: Eligibility matching is calculated in the browser. Automated profile assessment backend API connection is pending.</span>
-        <span className="px-2 py-0.5 bg-amber-105 rounded text-[10px] font-black uppercase text-amber-800">Pending Backend</span>
-      </div>
+
 
       {/* Step Indicator Stepper */}
       <EligibilityStepper currentStep={step} />
@@ -129,9 +162,33 @@ const EligibilityPage = () => {
       {step === 1 ? (
         <FormCard 
           title="Eligibility Assessment" 
-          subtitle="Provide your demographic details to find the most relevant government schemes and policies."
+          subtitle="Select a scheme and provide your details to verify eligibility."
         >
           <div className="space-y-6">
+            
+            {/* Scheme Selection */}
+            <div className="flex flex-col">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
+                Target Scheme *
+              </label>
+              <select
+                value={selectedSchemeId}
+                onChange={(e) => {
+                  setSelectedSchemeId(e.target.value);
+                  if (errors.scheme) setErrors(prev => ({...prev, scheme: ''}));
+                }}
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-bold bg-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 cursor-pointer ${
+                  errors.scheme ? 'border-rose-400 focus:border-rose-400 text-rose-700' : 'border-slate-300 text-slate-700 focus:border-[#0052cc]'
+                }`}
+              >
+                <option value="" disabled>-- Select a Government Scheme --</option>
+                {schemes.map(s => (
+                  <option key={s._id} value={s._id}>{s.title}</option>
+                ))}
+              </select>
+              {errors.scheme && <p className="text-rose-500 text-[10px] font-bold mt-1.5">{errors.scheme}</p>}
+            </div>
+
             <EligibilityForm 
               formData={formData}
               errors={errors}
@@ -154,53 +211,43 @@ const EligibilityPage = () => {
         <div className="space-y-6">
           
           {/* Header Row */}
-          <div className="bg-white rounded-3xl border border-slate-300 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-left">
-            <div className="space-y-1.5">
-              <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
-                Assessment Results
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-450 font-light leading-relaxed max-w-xl">
-                Based on your credentials, we have matched your profile with the following eligible government schemes.
-              </p>
-            </div>
-            
-            {/* Go Back button */}
-            <button 
-              onClick={() => setStep(1)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-colors shadow-sm cursor-pointer shrink-0"
-            >
-              <FaChevronLeft className="w-2.5 h-2.5 text-slate-400" />
-              <span>Modify Details</span>
-            </button>
-          </div>
-
-          {/* Scheme Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            {recommendations.map((scheme) => (
-              <div key={scheme.id}>
-                <SchemeCard 
-                  title={scheme.title}
-                  ministry={scheme.ministry}
-                  eligibilityTag={scheme.eligibilityTag}
-                  matchPercentage={scheme.matchPercentage}
-                  description={scheme.description}
-                  maxBenefit={scheme.maxBenefit}
-                  deadline={scheme.deadline}
-                  tags={scheme.tags}
-                  isBookmarked={bookmarkedIds.includes(scheme.id)}
-                  onBookmarkToggle={() => handleBookmarkToggle(scheme.id)}
-                  onApply={() => alert(`Applying for matching scheme: ${scheme.title}`)}
-                />
+          {/* Results Display */}
+          <div className="w-full max-w-2xl mx-auto">
+            {eligibilityResult?.eligible ? (
+              <div className="bg-white rounded-3xl border border-green-200 shadow-sm overflow-hidden text-center p-12">
+                <FaCheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">You are Eligible!</h3>
+                <p className="text-sm font-semibold text-slate-500 mb-8 max-w-md mx-auto leading-relaxed">
+                  Great news! Based on the credentials provided, you meet all the eligibility criteria for the selected scheme.
+                </p>
+                <button 
+                  onClick={() => alert('Proceeding to Application Wizard')}
+                  className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold shadow-md shadow-green-600/20 transition-all cursor-pointer border-none"
+                >
+                  Apply Now
+                </button>
               </div>
-            ))}
-            
-            {recommendations.length === 0 && (
-              <div className="col-span-2 py-16 text-center border border-dashed border-slate-350 bg-white rounded-2xl">
-                <p className="text-sm font-bold text-slate-400">No matching schemes found for your current profile.</p>
+            ) : (
+              <div className="bg-white rounded-3xl border border-rose-200 shadow-sm overflow-hidden text-center p-12">
+                <FaTimesCircle className="w-20 h-20 text-rose-500 mx-auto mb-6" />
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Not Eligible</h3>
+                <p className="text-sm font-semibold text-slate-500 mb-6 max-w-md mx-auto leading-relaxed">
+                  Unfortunately, you do not meet the criteria for this scheme based on the details provided.
+                </p>
+                
+                {eligibilityResult?.failedCriteria?.length > 0 && (
+                  <div className="text-left bg-rose-50 rounded-xl p-5 border border-rose-100 max-w-sm mx-auto">
+                    <h4 className="text-xs font-black text-rose-800 uppercase tracking-wider mb-3">Failed Criteria</h4>
+                    <ul className="list-disc pl-5 space-y-1.5 text-xs font-bold text-rose-700">
+                      {eligibilityResult.failedCriteria.map(c => (
+                        <li key={c}>{c.toUpperCase()}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-
+          </div>  
         </div>
       )}
 

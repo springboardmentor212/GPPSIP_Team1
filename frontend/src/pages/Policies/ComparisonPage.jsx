@@ -1,38 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Check, X, ShieldAlert } from 'lucide-react';
 import Footer from '../../components/layout/Footer';
+import { getPolicies } from '../../services/policy.service';
+import { comparePolicies } from '../../services/comparison.service';
 
 const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
   const [itemsToCompare, setItemsToCompare] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock fetching items for comparison to fit industrial frontend design
   useEffect(() => {
-    // Simulate loading state before rendering the comparison table
-    setTimeout(() => {
-      setItemsToCompare([
-        {
-          _id: "POL-001",
-          title: "National Health Protection Scheme",
-          department: "Health & Family Welfare",
-          category: "Healthcare",
-          status: "Active",
-          benefits: "Up to ₹5 Lakhs",
-          eligibility: "BPL families"
-        },
-        {
-          _id: "POL-002",
-          title: "PM State Health Scheme",
-          department: "Health & Family Welfare",
-          category: "Healthcare",
-          status: "Draft",
-          benefits: "Up to ₹2.5 Lakhs",
-          eligibility: "All citizens below ₹2L Income"
+    const fetchComparisonData = async () => {
+      setLoading(true);
+      try {
+        let idsToCompare = preSelectedItems;
+        if (!idsToCompare || idsToCompare.length < 2) {
+          // Fallback if not enough items selected: fetch default 2 policies
+          const defaultData = await getPolicies();
+          if (defaultData.success && Array.isArray(defaultData.policies)) {
+            idsToCompare = defaultData.policies.slice(0, 2).map(p => p._id);
+          }
         }
-      ]);
-      setLoading(false);
-    }, 600);
-  }, []);
+        
+        if (idsToCompare.length >= 2) {
+          const data = await comparePolicies(idsToCompare);
+          if (data.success && data.comparison && data.comparison.policies) {
+            setItemsToCompare(data.comparison.policies);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch comparison items", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchComparisonData();
+  }, [preSelectedItems]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

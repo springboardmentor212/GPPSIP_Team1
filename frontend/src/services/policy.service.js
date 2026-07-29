@@ -26,3 +26,17 @@ export async function getPolicyById(id) {
     throw error;
   }
 }
+
+/**
+ * Create a new policy
+ * @param {Object} policyData
+ * @returns {Promise<{ success: boolean, policy: Object }>}
+ */
+export async function createPolicy(policyData) {
+  try {
+    const response = await api.post('/policies', policyData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}

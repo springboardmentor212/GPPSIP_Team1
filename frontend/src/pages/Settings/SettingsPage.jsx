@@ -27,7 +27,7 @@ const SettingsPage = ({ dbStatus }) => {
           <div>
             <h4 className="text-sm font-bold text-slate-700">Database Connection</h4>
             <span className={`text-xs font-medium ${dbStatus === 'connected' ? 'text-emerald-500' : dbStatus === 'checking' ? 'text-slate-400' : 'text-rose-500'}`}>
-              {dbStatus === 'connected' ? 'Connected: Live Database Active' : dbStatus === 'checking' ? 'Checking connection...' : 'Disconnected: Local Mock Mode Active'}
+              {dbStatus === 'connected' ? 'Connected: Live Database Active' : dbStatus === 'checking' ? 'Checking connection...' : 'Disconnected: Backend API Pending'}
             </span>
           </div>
           <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${

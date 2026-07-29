@@ -86,23 +86,11 @@ const NotificationsPage = () => {
 
   const handleLoadMore = () => {
     setLoadMoreLoading(true);
+    // TODO: Connect to backend for real historical notifications
     setTimeout(() => {
-      setNotifications(prev => [
-        ...prev,
-        {
-          id: 306 + prev.length,
-          type: "scheme",
-          category: "Scheme Update",
-          title: "Startup India Infrastructure Support v2.0",
-          description: "New co-working space incubation sub-grants open for tech startups in Tier-2/Tier-3 cities.",
-          timestamp: "3 days ago",
-          actionText: "Apply Now",
-          readStatus: true,
-          section: "Yesterday"
-        }
-      ]);
       setLoadMoreLoading(false);
-    }, 600);
+      alert("Backend API connection for historical notifications is currently in development.");
+    }, 400);
   };
 
   // Filter notification items
@@ -124,11 +112,7 @@ const NotificationsPage = () => {
   return (
     <div className="w-full space-y-8 select-none">
       
-      {/* Pending integration banner */}
-      <div className="p-3 bg-amber-50 text-amber-850 border border-amber-200 rounded-xl text-xs font-semibold flex items-center justify-between">
-        <span>⚠️ Local Mock Mode Active: Notifications are simulated. Real-time notifications backend API connection is pending.</span>
-        <span className="px-2 py-0.5 bg-amber-105 rounded text-[10px] font-black uppercase text-amber-800">Pending Backend</span>
-      </div>
+
 
       {/* Page Header (Title, Subtitle, Actions) */}
       <NotificationHeader 
