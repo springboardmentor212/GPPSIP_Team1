@@ -56,8 +56,8 @@ const Dashboard = () => {
   // Sync activeTab if URL query param changes
   useEffect(() => {
     const tabFromUrl = new URLSearchParams(location.search).get('tab');
-    if (tabFromUrl && tabFromUrl !== activeTab) {
-      setActiveTab(tabFromUrl);
+    if (tabFromUrl) {
+      setActiveTab((prev) => (prev !== tabFromUrl ? tabFromUrl : prev));
     }
   }, [location.search]);
 
