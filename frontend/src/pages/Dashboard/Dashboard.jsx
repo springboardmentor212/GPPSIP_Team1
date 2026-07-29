@@ -39,6 +39,10 @@ import ProfilePage from '../Profile/ProfilePage';
 import SettingsPage from '../Settings/SettingsPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
 
+// Import Services
+import { getPolicies } from '../../services/policy.service';
+import { getSchemes } from '../../services/scheme.service';
+
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -46,6 +50,7 @@ const Dashboard = () => {
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [dbStatus, setDbStatus] = useState('checking');
+  const [stats, setStats] = useState({ policies: 0, schemes: 0, recommendations: [] });
 
   // Verify health check on load to report live connection status
   useEffect(() => {
@@ -63,6 +68,21 @@ const Dashboard = () => {
       }
     };
     verifyDatabaseConnection();
+    
+    // Fetch live dashboard stats
+    const fetchStats = async () => {
+      try {
+        const [polRes, schRes] = await Promise.all([getPolicies(), getSchemes()]);
+        setStats({
+          policies: polRes.policies?.length || 0,
+          schemes: schRes.schemes?.length || 0,
+          recommendations: schRes.schemes?.slice(0, 2) || []
+        });
+      } catch (err) {
+        console.error("Failed to load dashboard stats:", err);
+      }
+    };
+    fetchStats();
   }, []);
 
   // Protect route
@@ -95,33 +115,33 @@ const Dashboard = () => {
             {/* Statistics Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <StatsCard 
-                title="Eligible Schemes" 
-                value="12" 
-                growth="+3 new this week" 
+                title="Total Schemes" 
+                value={stats.schemes} 
+                growth="Active directory" 
                 growthType="positive" 
                 icon={FaCheckCircle} 
                 color="blue" 
               />
               <StatsCard 
-                title="Saved Policies" 
-                value={savedSchemes.filter(Boolean).length + 3} 
-                growth="Syncing" 
+                title="Total Policies" 
+                value={stats.policies} 
+                growth="Active directory" 
                 growthType="neutral" 
                 icon={FaBookmark} 
                 color="purple" 
               />
               <StatsCard 
                 title="Applications" 
-                value="3" 
-                growth="1 pending approval" 
+                value="0" 
+                growth="Awaiting processing" 
                 growthType="neutral" 
                 icon={FaClipboardList} 
                 color="orange" 
               />
               <StatsCard 
                 title="Notifications" 
-                value="8" 
-                growth="2 unread" 
+                value="0" 
+                growth="All caught up" 
                 growthType="positive" 
                 icon={FaBell} 
                 color="green" 
@@ -137,7 +157,7 @@ const Dashboard = () => {
                 {/* Recommended Schemes */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-slate-800 tracking-tight">Recommended Schemes</h3>
+                    <h3 className="text-lg font-black text-slate-800 tracking-tight">Latest Schemes</h3>
                     <button 
                       onClick={() => setActiveTab('schemes')}
                       className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer"
@@ -148,25 +168,24 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="flex flex-col gap-5">
-                    <RecommendationCard 
-                      title="PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)"
-                      matchPercentage="88"
-                      eligibilityTag="Eligible"
-                      description="Direct benefit transfer scheme providing ₹6,000 per year in three equal installments."
-                      isSaved={savedSchemes[0]}
-                      onSave={() => toggleSaved(0)}
-                      onApply={() => setActiveTab('applications')}
-                    />
-                    <RecommendationCard 
-                      title="Post-Matric Scholarship Scheme"
-                      ministry="Ministry of Education"
-                      matchPercentage="88"
-                      eligibilityTag="Eligible"
-                      description="Financial assistance to students from underprivileged communities to pursue post-matric or post-secondary courses."
-                      isSaved={savedSchemes[1]}
-                      onSave={() => toggleSaved(1)}
-                      onApply={() => setActiveTab('applications')}
-                    />
+                    {stats.recommendations.map((scheme, idx) => (
+                      <RecommendationCard 
+                        key={scheme._id || idx}
+                        title={scheme.title}
+                        ministry={scheme.category}
+                        matchPercentage="New"
+                        eligibilityTag="Check Eligibility"
+                        description={scheme.description}
+                        isSaved={savedSchemes[idx]}
+                        onSave={() => toggleSaved(idx)}
+                        onApply={() => setActiveTab('schemes')}
+                      />
+                    ))}
+                    {stats.recommendations.length === 0 && (
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-500 font-medium">
+                        No schemes available yet.
+                      </div>
+                    )}
                   </div>
                 </div>
 
