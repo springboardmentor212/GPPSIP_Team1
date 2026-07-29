@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { State, City } from 'country-state-city';
 import SearchableDropdown from '../components/SearchableDropdown';
-import useAuth from '../hooks/useAuth';
+import useAuth from '../../../hooks/useAuth';
 
 const Register = () => {
   const [formData, setFormData] = useState({

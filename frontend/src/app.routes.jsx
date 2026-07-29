@@ -2,8 +2,8 @@ import { createBrowserRouter, Navigate } from "react-router";
 import LandingPage from "./pages/LandingPage";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
-import Dashboard from "./pages/Dashboard";
-import useAuth from "./features/auth/hooks/useAuth";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import useAuth from "./hooks/useAuth";
 
 const GuestRoute = ({ children }) => {
     const { user } = useAuth();
