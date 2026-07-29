@@ -38,10 +38,16 @@ import ApplicationsPage from '../Applications/ApplicationsPage';
 import ProfilePage from '../Profile/ProfilePage';
 import SettingsPage from '../Settings/SettingsPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
+import { useLocation } from 'react-router';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+  
+  // Parse initial tab from URL query params (e.g. ?tab=schemes)
+  const initialTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
   const [selectedPolicy, setSelectedPolicy] = useState(null);
