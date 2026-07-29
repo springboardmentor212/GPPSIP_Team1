@@ -53,6 +53,14 @@ const Dashboard = () => {
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [dbStatus, setDbStatus] = useState('checking');
 
+  // Sync activeTab if URL query param changes
+  useEffect(() => {
+    const tabFromUrl = new URLSearchParams(location.search).get('tab');
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [location.search]);
+
   // Verify health check on load to report live connection status
   useEffect(() => {
     const verifyDatabaseConnection = async () => {
