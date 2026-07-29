@@ -38,6 +38,8 @@ const PolicySearchPage = ({ onReadMore }) => {
       if (appliedSearchQuery) queryParams.q = appliedSearchQuery;
       if (filters.category !== 'All Categories') queryParams.category = filters.category;
       if (filters.department !== 'All Depts') queryParams.department = filters.department;
+      if (filters.state !== 'All States') queryParams.state = filters.state;
+      if (filters.ministry !== 'All Ministries') queryParams.ministry = filters.ministry;
       if (filters.status !== 'All Statuses') queryParams.status = filters.status;
 
       const data = await searchAll(queryParams);
@@ -57,7 +59,7 @@ const PolicySearchPage = ({ onReadMore }) => {
   // Re-fetch when search/filters change
   useEffect(() => {
     fetchPoliciesData();
-  }, [appliedSearchQuery, filters.category, filters.department, filters.status]);
+  }, [appliedSearchQuery, filters.category, filters.department, filters.status, filters.state, filters.ministry]);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -110,19 +112,8 @@ const PolicySearchPage = ({ onReadMore }) => {
     }
   };
 
-  // Filter & Sort Logic (Server handles Search, Category, Department, Status)
+  // Filter & Sort Logic (Server handles Search, Category, Department, Status, State, Ministry)
   const filteredPolicies = policies.filter((policy) => {
-    const policyLocation = policy.location || 'Federal';
-    const policyMinistry = policy.ministry || policy.department || '';
-
-    // 1. State filter (Client-side fallback)
-    if (filters.state !== 'All States' && policyLocation.toLowerCase() !== filters.state.toLowerCase()) {
-      return false;
-    }
-    // 2. Ministry filter (Client-side fallback)
-    if (filters.ministry !== 'All Ministries' && policyMinistry.toLowerCase() !== filters.ministry.toLowerCase()) {
-      return false;
-    }
     // 3. Date filter (Client-side fallback)
     const policyDateStr = policy.createdAt ? new Date(policy.createdAt).toISOString().split('T')[0] : '';
     if (filters.date && policyDateStr !== filters.date) {
