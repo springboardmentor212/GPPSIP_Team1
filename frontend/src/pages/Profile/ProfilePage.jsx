@@ -399,10 +399,7 @@ const ProfilePage = () => {
             {/* Plan/Verification Badges */}
             <div className="flex flex-wrap justify-center sm:justify-start gap-2 pt-1">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#0052cc] border border-blue-100">
-                <FaCheckCircle className="w-3 h-3 text-[#0052cc]" /> Verified Account
-              </span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900 text-white border border-slate-900">
-                Enterprise Plan
+                <FaCheckCircle className="w-3 h-3 text-[#0052cc]" /> {user?.role || 'User'}
               </span>
             </div>
           </div>
