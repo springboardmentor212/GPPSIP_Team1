@@ -10,10 +10,10 @@ const validate = (schema) => (req, res, next) => {
       params: req.params,
     });
     
-    // Assign back to express request so controllers get the string version of mobile
-    req.body = parsed.body;
-    req.query = parsed.query;
-    req.params = parsed.params;
+    // Only assign back fields that the schema defines to avoid wiping unvalidated fields
+    if (parsed.body !== undefined) req.body = parsed.body;
+    if (parsed.query !== undefined) req.query = parsed.query;
+    if (parsed.params !== undefined) req.params = parsed.params;
     
     next();
   } catch (error) {

@@ -14,14 +14,29 @@ const policySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Draft', 'Pending', 'Approved', 'Archived'],
+    enum: ['Draft', 'Pending', 'Approved', 'Rejected', 'Archived'],
     default: 'Draft'
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  reviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  approvalHistory: [{
+    fromStatus: { type: String, required: true },
+    toStatus: { type: String, required: true },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    comments: { type: String, default: '' },
+    changedAt: { type: Date, default: Date.now }
+  }]
 }, { timestamps: true });
 
 const Policy = mongoose.model('Policy', policySchema);

@@ -17,11 +17,19 @@ app.use(cookieParser());
 const authRouter = require('./routes/auth.routes');
 const policyRouter = require('./routes/policy.routes');
 const schemeRouter = require('./routes/scheme.routes');
+const approvalRouter = require('./routes/approval.routes');
+const comparisonRouter = require('./routes/comparison.routes');
+const searchRouter = require('./routes/search.routes');
+const eligibilityRouter = require('./routes/eligibility.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
 app.use('/api/policies', policyRouter);
+app.use('/api/policies', approvalRouter);
 app.use('/api/schemes', schemeRouter);
+app.use('/api/schemes', eligibilityRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/compare', comparisonRouter);
 
 /* health check route */
 app.get('/health', (req, res) => {
