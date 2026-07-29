@@ -182,7 +182,7 @@ const ApprovalsDashboard = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-8 flex flex-col justify-between min-h-full bg-slate-50">
         <div className="flex-grow space-y-8 px-4 sm:px-6 lg:px-8 py-8">
           
@@ -429,7 +429,7 @@ const ApprovalsDashboard = () => {
         onClose={() => setSchemeModalOpen(false)} 
         onSuccess={fetchPendingItems} 
       />
-    </DashboardLayout>
+    </>
   );
 };
 
