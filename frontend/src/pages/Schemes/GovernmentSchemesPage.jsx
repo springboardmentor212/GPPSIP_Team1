@@ -47,8 +47,14 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     );
   };
 
-  const handleApply = (title) => {
-    alert(`Initiating Application wizard for: "${title}"`);
+  const handleApply = (scheme) => {
+    if (scheme.applicationLink) {
+      window.open(scheme.applicationLink, '_blank', 'noopener,noreferrer');
+    } else if (scheme.officialWebsite) {
+      window.open(scheme.officialWebsite, '_blank', 'noopener,noreferrer');
+    } else {
+      alert(`No external application portal link registered for: "${scheme.title}"`);
+    }
   };
 
   const handleToggleSort = () => {
@@ -137,7 +143,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
                 tags={scheme.tags || [scheme.category]}
                 isBookmarked={bookmarkedIds.includes(scheme._id || scheme.id)}
                 onBookmarkToggle={() => handleBookmarkToggle(scheme._id || scheme.id)}
-                onApply={() => handleApply(scheme.title)}
+                onApply={() => handleApply(scheme)}
               />
             </div>
           ))}
