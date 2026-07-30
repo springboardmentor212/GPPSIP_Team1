@@ -393,6 +393,24 @@ const ApprovalsDashboard = () => {
                                   </>
                                 )}
                                 <button
+                                  onClick={() => {
+                                    setEditingItem(item.raw);
+                                    if (item.type === 'Policy') setPolicyModalOpen(true);
+                                    else setSchemeModalOpen(true);
+                                  }}
+                                  className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded text-xs font-bold transition-colors cursor-pointer border-none"
+                                >
+                                  Edit
+                                </button>
+                                {item.status !== 'Archived' && (
+                                  <button
+                                    onClick={() => handleAction('archive', item.type, item.id)}
+                                    className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs font-bold transition-colors cursor-pointer border-none"
+                                  >
+                                    Archive
+                                  </button>
+                                )}
+                                <button
                                   onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/scheme/${item.id}`)}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border-none ml-1"
                                 >
