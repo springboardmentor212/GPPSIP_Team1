@@ -7,7 +7,7 @@ const Scheme = require('../models/scheme.model');
  */
 const searchAll = async (req, res, next) => {
     try {
-        const { q, category, department, status } = req.query;
+        const { q, category, department, status, state, ministry } = req.query;
 
         // Base queries
         const policyQuery = {};
@@ -33,6 +33,21 @@ const searchAll = async (req, res, next) => {
         if (department) {
             policyQuery.department = department;
             // Schemes cannot match department, so we implicitly skip querying schemes
+        }
+
+        // Add state filtering
+        if (state) {
+            // If the model supports state/location, we map it here
+            // Policy doesn't have a strict location field, but we can query it if dynamic
+            // Scheme has eligibilityRules.location
+            policyQuery.location = { $regex: state, $options: 'i' };
+            schemeQuery['eligibilityRules.location'] = { $regex: state, $options: 'i' };
+        }
+
+        // Add ministry filtering
+        if (ministry) {
+            policyQuery.department = { $regex: ministry, $options: 'i' };
+            schemeQuery.department = { $regex: ministry, $options: 'i' };
         }
 
         // 4. Status search
