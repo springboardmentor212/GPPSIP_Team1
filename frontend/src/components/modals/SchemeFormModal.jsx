@@ -2,19 +2,35 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import InputField from '../forms/InputField';
 import SelectField from '../forms/SelectField';
-import { createScheme } from '../../services/scheme.service';
+import { createScheme, updateScheme } from '../../services/scheme.service';
 
 const schemeCategories = [
   'Scholarships', 'Farmer Welfare', 'Healthcare', 'Housing', 'Business Support',
   'Women Empowerment', 'Senior Citizen Welfare', 'Student Schemes', 'Employment Programs', 'Social Security'
 ];
 
-const SchemeFormModal = ({ isOpen, onClose, onSuccess }) => {
+const SchemeFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
   const [formValues, setFormValues] = useState({
     title: '',
     description: '',
     category: schemeCategories[0]
   });
+
+  React.useEffect(() => {
+    if (initialData && isOpen) {
+      setFormValues({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        category: initialData.category || schemeCategories[0]
+      });
+    } else if (!isOpen) {
+      setFormValues({
+        title: '',
+        description: '',
+        category: schemeCategories[0]
+      });
+    }
+  }, [initialData, isOpen]);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,13 +50,19 @@ const SchemeFormModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await createScheme(formValues);
+      let response;
+      if (initialData && initialData.id) {
+        response = await updateScheme(initialData.id, formValues);
+      } else {
+        response = await createScheme(formValues);
+      }
+      
       if (response.success) {
         onSuccess();
         onClose();
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Failed to create scheme");
+      setError(err.response?.data?.message || err.message || `Failed to ${initialData ? 'update' : 'create'} scheme`);
     } finally {
       setLoading(false);
     }
@@ -50,7 +72,7 @@ const SchemeFormModal = ({ isOpen, onClose, onSuccess }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create New Scheme"
+      title={initialData ? "Edit Scheme" : "Create New Scheme"}
       actions={
         <>
           <button
@@ -67,7 +89,7 @@ const SchemeFormModal = ({ isOpen, onClose, onSuccess }) => {
             disabled={loading}
             className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-xl text-xs font-bold transition-all cursor-pointer border-none flex items-center gap-2"
           >
-            {loading ? 'Creating...' : 'Create Scheme'}
+            {loading ? (initialData ? 'Updating...' : 'Creating...') : (initialData ? 'Update Scheme' : 'Create Scheme')}
           </button>
         </>
       }
