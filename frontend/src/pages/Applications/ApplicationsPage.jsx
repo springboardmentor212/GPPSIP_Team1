@@ -19,8 +19,8 @@ import PolicyFormModal from '../../components/modals/PolicyFormModal';
 import SchemeFormModal from '../../components/modals/SchemeFormModal';
 
 // Import Services
-import { getPolicies } from '../../services/policy.service';
-import { getSchemes } from '../../services/scheme.service';
+import { getPolicies, archivePolicy } from '../../services/policy.service';
+import { getSchemes, archiveScheme } from '../../services/scheme.service';
 import { submitForApproval, approvePolicy, rejectPolicy } from '../../services/approval.service';
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
@@ -42,6 +42,7 @@ const ApprovalsDashboard = () => {
   // Modal states
   const [isPolicyModalOpen, setPolicyModalOpen] = useState(false);
   const [isSchemeModalOpen, setSchemeModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,7 +75,8 @@ const ApprovalsDashboard = () => {
             department: p.department,
             date: p.createdAt,
             type: 'Policy',
-            status: p.status || 'Pending'
+            status: p.status || 'Pending',
+            raw: p
           }));
         allItems = [...allItems, ...mappedPolicies];
       }
@@ -88,7 +90,8 @@ const ApprovalsDashboard = () => {
             department: s.ministry || s.department,
             date: s.createdAt,
             type: 'Scheme',
-            status: s.status || 'Pending'
+            status: s.status || 'Pending',
+            raw: s
           }));
         allItems = [...allItems, ...mappedSchemes];
       }
@@ -142,23 +145,24 @@ const ApprovalsDashboard = () => {
 
   const totalPages = Math.max(Math.ceil(filteredItems.length / itemsPerPage), 1);
 
-  // Handlers for Policy Approval Actions
+  // Handlers for Actions
   const handleAction = async (action, type, id) => {
-    if (type !== 'Policy') {
-      alert('Approval workflow is currently supported for Policies only in this milestone.');
-      return;
-    }
-    
     try {
       let res;
       if (action === 'submit') {
+        if (type !== 'Policy') return alert('Only policies supported for submit');
         res = await submitForApproval(id);
       } else if (action === 'approve') {
+        if (type !== 'Policy') return alert('Only policies supported for approve');
         res = await approvePolicy(id);
       } else if (action === 'reject') {
+        if (type !== 'Policy') return alert('Only policies supported for reject');
         const reason = prompt('Please enter a rejection reason:');
         if (!reason) return;
         res = await rejectPolicy(id, reason);
+      } else if (action === 'archive') {
+        if (!window.confirm(`Are you sure you want to archive this ${type}?`)) return;
+        res = type === 'Policy' ? await archivePolicy(id) : await archiveScheme(id);
       }
       
       if (res && res.success) {
@@ -392,6 +396,24 @@ const ApprovalsDashboard = () => {
                                   </>
                                 )}
                                 <button
+                                  onClick={() => {
+                                    setEditingItem(item.raw);
+                                    if (item.type === 'Policy') setPolicyModalOpen(true);
+                                    else setSchemeModalOpen(true);
+                                  }}
+                                  className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded text-xs font-bold transition-colors cursor-pointer border-none"
+                                >
+                                  Edit
+                                </button>
+                                {item.status !== 'Archived' && (
+                                  <button
+                                    onClick={() => handleAction('archive', item.type, item.id)}
+                                    className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs font-bold transition-colors cursor-pointer border-none"
+                                  >
+                                    Archive
+                                  </button>
+                                )}
+                                <button
                                   onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/schemes`)}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border-none ml-1"
                                 >
@@ -425,13 +447,15 @@ const ApprovalsDashboard = () => {
 
       <PolicyFormModal 
         isOpen={isPolicyModalOpen} 
-        onClose={() => setPolicyModalOpen(false)} 
+        onClose={() => { setPolicyModalOpen(false); setEditingItem(null); }} 
         onSuccess={fetchPendingItems} 
+        initialData={editingItem}
       />
       <SchemeFormModal 
         isOpen={isSchemeModalOpen} 
-        onClose={() => setSchemeModalOpen(false)} 
+        onClose={() => { setSchemeModalOpen(false); setEditingItem(null); }} 
         onSuccess={fetchPendingItems} 
+        initialData={editingItem}
       />
     </DashboardLayout>
   );

@@ -2,20 +2,38 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import InputField from '../forms/InputField';
 import SelectField from '../forms/SelectField';
-import { createPolicy } from '../../services/policy.service';
+import { createPolicy, updatePolicy } from '../../services/policy.service';
 
 const policyCategories = [
   'Education', 'Healthcare', 'Agriculture', 'Employment', 'Finance',
   'Women & Child Welfare', 'Housing', 'Environment', 'Digital Governance', 'Infrastructure'
 ];
 
-const PolicyFormModal = ({ isOpen, onClose, onSuccess }) => {
+const PolicyFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => {
   const [formValues, setFormValues] = useState({
     title: '',
     description: '',
     department: '',
     category: policyCategories[0]
   });
+
+  React.useEffect(() => {
+    if (initialData && isOpen) {
+      setFormValues({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        department: initialData.department || '',
+        category: initialData.category || policyCategories[0]
+      });
+    } else if (!isOpen) {
+      setFormValues({
+        title: '',
+        description: '',
+        department: '',
+        category: policyCategories[0]
+      });
+    }
+  }, [initialData, isOpen]);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,13 +53,19 @@ const PolicyFormModal = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await createPolicy(formValues);
+      let response;
+      if (initialData && initialData.id) {
+        response = await updatePolicy(initialData.id, formValues);
+      } else {
+        response = await createPolicy(formValues);
+      }
+      
       if (response.success) {
         onSuccess();
         onClose();
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Failed to create policy");
+      setError(err.response?.data?.message || err.message || `Failed to ${initialData ? 'update' : 'create'} policy`);
     } finally {
       setLoading(false);
     }
@@ -51,7 +75,7 @@ const PolicyFormModal = ({ isOpen, onClose, onSuccess }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Create New Policy"
+      title={initialData ? "Edit Policy" : "Create New Policy"}
       actions={
         <>
           <button
@@ -68,7 +92,7 @@ const PolicyFormModal = ({ isOpen, onClose, onSuccess }) => {
             disabled={loading}
             className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-xl text-xs font-bold transition-all cursor-pointer border-none flex items-center gap-2"
           >
-            {loading ? 'Creating...' : 'Create Policy'}
+            {loading ? (initialData ? 'Updating...' : 'Creating...') : (initialData ? 'Update Policy' : 'Create Policy')}
           </button>
         </>
       }

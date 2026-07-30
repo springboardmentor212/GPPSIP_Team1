@@ -40,3 +40,32 @@ export async function createScheme(schemeData) {
     throw error;
   }
 }
+
+/**
+ * Update an existing scheme
+ * @param {string} id - Database ID of the scheme
+ * @param {Object} updateData
+ * @returns {Promise<{ success: boolean, scheme: Object }>}
+ */
+export async function updateScheme(id, updateData) {
+  try {
+    const response = await api.put(`/schemes/${id}`, updateData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Archive a scheme (change status to Archived)
+ * @param {string} id - Database ID of the scheme
+ * @returns {Promise<{ success: boolean, scheme: Object }>}
+ */
+export async function archiveScheme(id) {
+  try {
+    const response = await api.patch(`/schemes/${id}/archive`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
