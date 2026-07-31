@@ -71,10 +71,10 @@ const ApprovalsDashboard = () => {
         const mappedPolicies = policiesRes.policies
           .map(p => ({
             id: p._id,
-            displayId: `POL-${p._id.substring(18).toUpperCase()}`,
-            title: p.title,
-            department: p.department,
-            date: p.createdAt,
+            displayId: `POL-${(p._id || '').slice(-6).toUpperCase() || 'UNKNOWN'}`,
+            title: p.title || 'Untitled Policy',
+            department: p.department || 'Unknown Department',
+            date: p.createdAt || new Date().toISOString(),
             type: 'Policy',
             status: p.status || 'Pending',
             raw: p
@@ -86,10 +86,10 @@ const ApprovalsDashboard = () => {
         const mappedSchemes = schemesRes.schemes
           .map(s => ({
             id: s._id,
-            displayId: `SCH-${s._id.substring(18).toUpperCase()}`,
-            title: s.title,
-            department: s.ministry || s.department,
-            date: s.createdAt,
+            displayId: `SCH-${(s._id || '').slice(-6).toUpperCase() || 'UNKNOWN'}`,
+            title: s.title || 'Untitled Scheme',
+            department: s.ministry || s.department || 'Unknown Department',
+            date: s.createdAt || new Date().toISOString(),
             type: 'Scheme',
             status: s.status || 'Pending',
             raw: s
@@ -187,7 +187,7 @@ const ApprovalsDashboard = () => {
   }
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-8 flex flex-col justify-between min-h-full bg-slate-50">
         <div className="flex-grow space-y-8 px-4 sm:px-6 lg:px-8 py-8">
           
@@ -415,7 +415,7 @@ const ApprovalsDashboard = () => {
                                   </button>
                                 )}
                                 <button
-                                  onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/schemes`)}
+                                  onClick={() => navigate(item.type === 'Policy' ? `/policy/${item.id}` : `/scheme/${item.id}`)}
                                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0052cc] hover:bg-[#0047b3] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer border-none ml-1"
                                 >
                                   <FaEye className="w-3 h-3" /> View
@@ -458,7 +458,7 @@ const ApprovalsDashboard = () => {
         onSuccess={fetchPendingItems} 
         initialData={editingItem}
       />
-    </DashboardLayout>
+    </>
   );
 };
 

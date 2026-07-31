@@ -38,6 +38,7 @@ import ApplicationsPage from '../Applications/ApplicationsPage';
 import ProfilePage from '../Profile/ProfilePage';
 import SettingsPage from '../Settings/SettingsPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
+import { useLocation } from 'react-router';
 
 // Import Services
 import { getPolicies } from '../../services/policy.service';
@@ -45,12 +46,25 @@ import { getSchemes } from '../../services/scheme.service';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+  
+  // Parse initial tab from URL query params (e.g. ?tab=schemes)
+  const initialTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [dbStatus, setDbStatus] = useState('checking');
   const [stats, setStats] = useState({ policies: 0, schemes: 0, recommendations: [] });
+
+  // Sync activeTab if URL query param changes
+  useEffect(() => {
+    const tabFromUrl = new URLSearchParams(location.search).get('tab');
+    if (tabFromUrl) {
+      setActiveTab((prev) => (prev !== tabFromUrl ? tabFromUrl : prev));
+    }
+  }, [location.search]);
 
   // Verify health check on load to report live connection status
   useEffect(() => {

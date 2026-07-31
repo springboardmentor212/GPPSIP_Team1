@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { 
   FaThLarge, 
   FaSearch, 
@@ -15,6 +15,13 @@ import {
 } from 'react-icons/fa';
 
 const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) => {
+  const navigate = useNavigate();
+  
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    navigate(`/dashboard?tab=${tabId}`, { replace: true });
+  };
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: FaThLarge },
     { id: 'search', label: 'Policy Search', icon: FaSearch },
@@ -55,7 +62,7 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabClick(item.id)}
               className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
                 isActive
                   ? 'bg-blue-50/70 text-[#0052cc]'
@@ -79,7 +86,7 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
       <div className="p-4 border-t border-slate-300 space-y-1">
         {/* Profile */}
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabClick('profile')}
           className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
             activeTab === 'profile'
               ? 'bg-blue-50/70 text-[#0052cc]'
@@ -97,7 +104,7 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
 
         {/* Settings */}
         <button
-          onClick={() => setActiveTab('settings')}
+          onClick={() => handleTabClick('settings')}
           className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
             activeTab === 'settings'
               ? 'bg-blue-50/70 text-[#0052cc]'
