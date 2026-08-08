@@ -1,22 +1,24 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router';
-import { 
-  FaThLarge, 
-  FaSearch, 
-  FaBook, 
-  FaUserCheck, 
-  FaClipboardList, 
-  FaBookmark, 
-  FaBell, 
-  FaRobot, 
-  FaUser, 
-  FaCog, 
-  FaSignOutAlt 
+import {
+  FaThLarge,
+  FaSearch,
+  FaBook,
+  FaUserCheck,
+  FaClipboardList,
+  FaBookmark,
+  FaBell,
+  FaRobot,
+  FaUser,
+  FaCog,
+  FaSignOutAlt,
+  FaChartBar,
+  FaHeadset
 } from 'react-icons/fa';
 
 const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) => {
   const navigate = useNavigate();
-  
+
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
     navigate(`/dashboard?tab=${tabId}`, { replace: true });
@@ -27,17 +29,21 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
     { id: 'search', label: 'Policy Search', icon: FaSearch },
     { id: 'schemes', label: 'Government Schemes', icon: FaBook },
     { id: 'eligibility', label: 'Eligibility Checker', icon: FaUserCheck },
-    ...(user && (user.role === 'Gov. Official' || user.role === 'Admin') 
-      ? [{ id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }] 
+    ...(user && (user.role === 'Gov. Official' || user.role === 'Admin')
+      ? [
+        { id: 'reports', label: 'Analytics', icon: FaChartBar },
+        { id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }
+      ]
       : []),
     { id: 'saved', label: 'Saved Policies', icon: FaBookmark },
+    { id: 'feedback', label: 'Feedback & Support', icon: FaHeadset },
     { id: 'notifications', label: 'Notifications', icon: FaBell },
     { id: 'ai', label: 'AI Assistant', icon: FaRobot },
   ];
 
   return (
     <aside className="w-72 bg-white border-r border-slate-300 flex flex-col shrink-0 h-screen sticky top-0">
-      
+
       {/* Government Logo & Header Section */}
       <div className="p-6 border-b border-slate-300 flex items-center gap-3">
         {/* Ashoka Chakra-inspired Government Emblem SVG */}
@@ -63,19 +69,17 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
             <button
               key={item.id}
               onClick={() => handleTabClick(item.id)}
-              className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
-                isActive
-                  ? 'bg-blue-50/70 text-[#0052cc]'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
-              }`}
+              className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${isActive
+                ? 'bg-blue-50/70 text-[#0052cc]'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
+                }`}
             >
               {/* Left Indicator vertical bar */}
               {isActive && (
                 <div className="absolute left-0 top-3.5 bottom-3.5 w-1 bg-[#0052cc] rounded-r-full"></div>
               )}
-              <Icon className={`w-4.5 h-4.5 shrink-0 transition-transform duration-200 ${
-                isActive ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
-              }`} />
+              <Icon className={`w-4.5 h-4.5 shrink-0 transition-transform duration-200 ${isActive ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
+                }`} />
               <span className="tracking-tight">{item.label}</span>
             </button>
           );
@@ -87,36 +91,32 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
         {/* Profile */}
         <button
           onClick={() => handleTabClick('profile')}
-          className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
-            activeTab === 'profile'
-              ? 'bg-blue-50/70 text-[#0052cc]'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
-          }`}
+          className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${activeTab === 'profile'
+            ? 'bg-blue-50/70 text-[#0052cc]'
+            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
+            }`}
         >
           {activeTab === 'profile' && (
             <div className="absolute left-0 top-3 bottom-3 w-1 bg-[#0052cc] rounded-r-full"></div>
           )}
-          <FaUser className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-            activeTab === 'profile' ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
-          }`} />
+          <FaUser className={`w-4 h-4 shrink-0 transition-transform duration-200 ${activeTab === 'profile' ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
+            }`} />
           <span className="tracking-tight">Profile</span>
         </button>
 
         {/* Settings */}
         <button
           onClick={() => handleTabClick('settings')}
-          className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${
-            activeTab === 'settings'
-              ? 'bg-blue-50/70 text-[#0052cc]'
-              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
-          }`}
+          className={`w-full flex items-center gap-3.5 pl-6 pr-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 group relative border-none cursor-pointer ${activeTab === 'settings'
+            ? 'bg-blue-50/70 text-[#0052cc]'
+            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/50'
+            }`}
         >
           {activeTab === 'settings' && (
             <div className="absolute left-0 top-3 bottom-3 w-1 bg-[#0052cc] rounded-r-full"></div>
           )}
-          <FaCog className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
-            activeTab === 'settings' ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
-          }`} />
+          <FaCog className={`w-4 h-4 shrink-0 transition-transform duration-200 ${activeTab === 'settings' ? 'text-[#0052cc]' : 'text-slate-400 group-hover:text-slate-600'
+            }`} />
           <span className="tracking-tight">Settings</span>
         </button>
 

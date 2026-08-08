@@ -1,30 +1,33 @@
 import React from 'react';
 
-const NotificationTabs = ({ activeTab, onTabChange }) => {
+const NotificationTabs = ({ activeTab, onTabChange, unreadCount = 12 }) => {
   const tabs = [
-    { id: 'all', label: "All" },
-    { id: 'policy', label: "Policy Updates" },
-    { id: 'scheme', label: "Scheme Updates" },
-    { id: 'application', label: "Application Alerts" },
-    { id: 'eligibility', label: "Eligibility Alerts" }
+    { id: 'all', label: 'All Notifications' },
+    { id: 'unread', label: `Unread (${unreadCount})` },
+    { id: 'policies', label: 'Policies' },
+    { id: 'schemes', label: 'Schemes' },
+    { id: 'applications', label: 'Applications' },
+    { id: 'system', label: 'System' }
   ];
 
   return (
-    <div className="w-full overflow-x-auto no-scrollbar pt-2 select-none">
-      <div className="flex items-center gap-3 pb-2 shrink-0">
+    <div className="w-full border-b border-slate-200 select-none overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-6 pt-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 shrink-0 whitespace-nowrap cursor-pointer border ${
-                isActive
-                  ? 'bg-[#0052cc] text-white border-[#0052cc] shadow-sm shadow-blue-500/10'
-                  : 'bg-white text-slate-600 border-slate-300 hover:border-slate-450 hover:text-slate-800'
-              }`}
+              className={`pb-3 text-xs font-bold transition-all relative whitespace-nowrap cursor-pointer ${isActive
+                  ? 'text-[#0052cc]'
+                  : 'text-slate-500 hover:text-slate-800'
+                }`}
             >
               {tab.label}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0052cc] rounded-full" />
+              )}
             </button>
           );
         })}

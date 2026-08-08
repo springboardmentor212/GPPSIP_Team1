@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { Navigate } from 'react-router';
-import { 
-  FaCheckCircle, 
-  FaBookmark, 
-  FaClipboardList, 
-  FaBell, 
-  FaSearch, 
-  FaArrowRight, 
+import {
+  FaCheckCircle,
+  FaBookmark,
+  FaClipboardList,
+  FaBell,
+  FaSearch,
+  FaArrowRight,
   FaCloudUploadAlt,
   FaQuestionCircle
 } from 'react-icons/fa';
@@ -38,6 +38,8 @@ import ApplicationsPage from '../Applications/ApplicationsPage';
 import ProfilePage from '../Profile/ProfilePage';
 import SettingsPage from '../Settings/SettingsPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
+import ReportsPage from '../Reports/ReportsPage';
+import FeedbackPage from '../Feedback/FeedbackPage';
 import { useLocation } from 'react-router';
 
 // Import Services
@@ -47,10 +49,10 @@ import { getSchemes } from '../../services/scheme.service';
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
   const location = useLocation();
-  
+
   // Parse initial tab from URL query params (e.g. ?tab=schemes)
   const initialTab = new URLSearchParams(location.search).get('tab') || 'dashboard';
-  
+
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
@@ -82,7 +84,7 @@ const Dashboard = () => {
       }
     };
     verifyDatabaseConnection();
-    
+
     // Fetch live dashboard stats
     const fetchStats = async () => {
       try {
@@ -120,59 +122,59 @@ const Dashboard = () => {
         return (
           <div className="space-y-8">
             {/* Welcome Banner */}
-            <WelcomeBanner 
-              user={user} 
-              onCheckEligibility={() => setActiveTab('eligibility')} 
-              onSearchPolicies={() => setActiveTab('search')} 
+            <WelcomeBanner
+              user={user}
+              onCheckEligibility={() => setActiveTab('eligibility')}
+              onSearchPolicies={() => setActiveTab('search')}
             />
 
             {/* Statistics Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <StatsCard 
-                title="Total Schemes" 
-                value={stats.schemes} 
-                growth="Active directory" 
-                growthType="positive" 
-                icon={FaCheckCircle} 
-                color="blue" 
+              <StatsCard
+                title="Total Schemes"
+                value={stats.schemes}
+                growth="Active directory"
+                growthType="positive"
+                icon={FaCheckCircle}
+                color="blue"
               />
-              <StatsCard 
-                title="Total Policies" 
-                value={stats.policies} 
-                growth="Active directory" 
-                growthType="neutral" 
-                icon={FaBookmark} 
-                color="purple" 
+              <StatsCard
+                title="Total Policies"
+                value={stats.policies}
+                growth="Active directory"
+                growthType="neutral"
+                icon={FaBookmark}
+                color="purple"
               />
-              <StatsCard 
-                title="Applications" 
-                value="0" 
-                growth="Awaiting processing" 
-                growthType="neutral" 
-                icon={FaClipboardList} 
-                color="orange" 
+              <StatsCard
+                title="Applications"
+                value="0"
+                growth="Awaiting processing"
+                growthType="neutral"
+                icon={FaClipboardList}
+                color="orange"
               />
-              <StatsCard 
-                title="Notifications" 
-                value="0" 
-                growth="All caught up" 
-                growthType="positive" 
-                icon={FaBell} 
-                color="green" 
+              <StatsCard
+                title="Notifications"
+                value="0"
+                growth="All caught up"
+                growthType="positive"
+                icon={FaBell}
+                color="green"
               />
             </div>
 
             {/* Core Multi-Column Content Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
+
               {/* LEFT & CENTER COLUMN (2/3 width) */}
               <div className="lg:col-span-2 space-y-8">
-                
+
                 {/* Recommended Schemes */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-black text-slate-800 tracking-tight">Latest Schemes</h3>
-                    <button 
+                    <button
                       onClick={() => setActiveTab('schemes')}
                       className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer"
                     >
@@ -180,10 +182,10 @@ const Dashboard = () => {
                       <FaArrowRight className="w-2.5 h-2.5" />
                     </button>
                   </div>
-                  
+
                   <div className="flex flex-col gap-5">
                     {stats.recommendations.map((scheme, idx) => (
-                      <RecommendationCard 
+                      <RecommendationCard
                         key={scheme._id || idx}
                         title={scheme.title}
                         ministry={scheme.category}
@@ -226,28 +228,28 @@ const Dashboard = () => {
                 <div className="space-y-3">
                   <h3 className="text-lg font-black text-slate-800 tracking-tight">Quick Actions</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <QuickActionCard 
-                      title="Find Policies" 
-                      icon={FaSearch} 
-                      onClick={() => setActiveTab('search')} 
+                    <QuickActionCard
+                      title="Find Policies"
+                      icon={FaSearch}
+                      onClick={() => setActiveTab('search')}
                       color="blue"
                     />
-                    <QuickActionCard 
-                      title="Check Status" 
-                      icon={FaClipboardList} 
-                      onClick={() => setActiveTab('applications')} 
+                    <QuickActionCard
+                      title="Check Status"
+                      icon={FaClipboardList}
+                      onClick={() => setActiveTab('applications')}
                       color="green"
                     />
-                    <QuickActionCard 
-                      title="Upload Docs" 
-                      icon={FaCloudUploadAlt} 
-                      onClick={() => setActiveTab('settings')} 
+                    <QuickActionCard
+                      title="Upload Docs"
+                      icon={FaCloudUploadAlt}
+                      onClick={() => setActiveTab('settings')}
                       color="purple"
                     />
-                    <QuickActionCard 
-                      title="Get Support" 
-                      icon={FaQuestionCircle} 
-                      onClick={() => setActiveTab('ai')} 
+                    <QuickActionCard
+                      title="Get Support"
+                      icon={FaQuestionCircle}
+                      onClick={() => setActiveTab('ai')}
                       color="orange"
                     />
                   </div>
@@ -274,9 +276,9 @@ const Dashboard = () => {
 
       case 'policy-details':
         return (
-          <PolicyDetailsPage 
-            policy={selectedPolicy} 
-            onBack={() => setActiveTab('search')} 
+          <PolicyDetailsPage
+            policy={selectedPolicy}
+            onBack={() => setActiveTab('search')}
           />
         );
 
@@ -297,15 +299,27 @@ const Dashboard = () => {
 
       case 'saved':
         return (
-          <SavedPoliciesPage 
-            setActiveTab={setActiveTab} 
-            setSelectedPolicy={setSelectedPolicy} 
+          <SavedPoliciesPage
+            setActiveTab={setActiveTab}
+            setSelectedPolicy={setSelectedPolicy}
           />
         );
 
       case 'notifications':
         return (
           <NotificationsPage />
+        );
+
+      case 'reports':
+      case 'analytics':
+        return (
+          <ReportsPage />
+        );
+
+      case 'feedback':
+      case 'support':
+        return (
+          <FeedbackPage user={user} />
         );
 
       case 'ai':
@@ -329,11 +343,11 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardLayout 
-      user={user} 
-      activeTab={activeTab} 
-      setActiveTab={setActiveTab} 
-      handleLogout={handleLogout} 
+    <DashboardLayout
+      user={user}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      handleLogout={handleLogout}
       setSearchQuery={setSearchQuery}
     >
       {renderTabContent()}

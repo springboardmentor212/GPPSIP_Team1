@@ -1,41 +1,40 @@
 import React from 'react';
-import { FaCheck, FaFilter } from 'react-icons/fa';
+import { FaCheck, FaSlidersH } from 'react-icons/fa';
 
-const NotificationHeader = ({ onMarkAllRead, onFilterToggle }) => {
+const NotificationHeader = ({ onMarkAllRead, onOpenSettings }) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 text-left select-none">
-      
-      {/* Title & Subtitle */}
-      <div className="space-y-1.5">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
-          Notifications
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 select-none pb-1">
+      {/* Title & Breadcrumbs */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+          <span>Dashboard</span>
+          <span>/</span>
+          <span className="text-slate-600 font-bold">Notifications</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Notification Center
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 font-light max-w-xl leading-relaxed">
-          Stay updated with the latest policy shifts and application milestones.
-        </p>
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-        {/* Mark All Read Button */}
+      <div className="flex items-center gap-3 shrink-0">
+        {/* Notification Settings Button */}
+        <button
+          onClick={onOpenSettings}
+          className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-xl text-xs font-bold text-[#0052cc] transition-all shadow-sm cursor-pointer"
+        >
+          <span>Notification Settings</span>
+        </button>
+
+        {/* Mark All as Read Button */}
         <button
           onClick={onMarkAllRead}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition-colors shadow-sm cursor-pointer"
+          className="flex items-center gap-2 px-4.5 py-2 bg-[#0052cc] hover:bg-[#0041a8] text-white border-none rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/10 cursor-pointer"
         >
-          <FaCheck className="w-3 h-3 text-slate-400" />
-          <span>Mark All Read</span>
-        </button>
-
-        {/* Filter Toggle Button */}
-        <button
-          onClick={onFilterToggle}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#0052cc] hover:bg-[#0047b3] text-white border-none rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/10 cursor-pointer"
-        >
-          <FaFilter className="w-3 h-3 text-white" />
-          <span>Filter</span>
+          <FaCheck className="w-3 h-3 text-white" />
+          <span>Mark All as Read</span>
         </button>
       </div>
-
     </div>
   );
 };
