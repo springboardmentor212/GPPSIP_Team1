@@ -64,39 +64,39 @@ const Register = () => {
   const validate = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
-    
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email Address is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Invalid email address';
     }
-    
+
     if (!formData.mobile.trim()) {
       newErrors.mobile = 'Mobile Number is required';
     } else if (!/^\d{10}$/.test(formData.mobile)) {
       newErrors.mobile = 'Mobile Number must be 10 digits';
     }
-    
+
     if (!formData.dob) {
       newErrors.dob = 'Date of Birth is required';
     }
-    
+
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Confirm Password is required';
     } else if (formData.confirmPassword !== formData.password) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.district) newErrors.district = 'District is required';
     if (!formData.termsAccepted) newErrors.termsAccepted = 'You must accept the terms';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -107,7 +107,13 @@ const Register = () => {
       setIsSubmitting(true);
       try {
         await handleRegister(formData);
-        navigate('/');
+        if (formData.role === 'Gov. Official') {
+          navigate('/official-verification');
+        } else if (formData.role === 'Researcher/NGO') {
+          navigate('/organization-verification');
+        } else {
+          navigate('/');
+        }
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -121,15 +127,15 @@ const Register = () => {
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#f0f4f9] text-slate-800 lg:h-screen lg:overflow-hidden">
-      
+
       {/* LEFT PANEL - Blue themed hero image with Indian grandmother/child */}
       <div className="relative w-full lg:w-[42%] xl:w-[40%] bg-[#0047b3] flex flex-col justify-between p-8 sm:p-12 lg:h-full overflow-hidden shrink-0">
-        
+
         {/* Background Image of Indian Grandmother & Child */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center z-0 opacity-90 transform scale-105"
-          style={{ 
-            backgroundImage: `url('/register_hero.jpg')` 
+          style={{
+            backgroundImage: `url('/register_hero.jpg')`
           }}
         />
 
@@ -162,7 +168,7 @@ const Register = () => {
       <div className="w-full lg:w-[58%] xl:w-[60%] flex items-center justify-center p-4 sm:p-6 lg:p-8 lg:h-full lg:overflow-y-auto shrink-0">
         <div className="w-full max-w-[490px] bg-white rounded-[24px] border border-slate-300 shadow-md p-5 sm:p-6 transition-all">
 
-          
+
           {/* Card Header */}
           <div className="text-center mb-4.5">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Create Your Account</h2>
@@ -173,22 +179,21 @@ const Register = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            
+
             {/* Input Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2.5">
-              
+
               {/* Full Name */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Full Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
                   placeholder="Enter full name"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.fullName ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.fullName && <p className="text-red-500 text-[10px] mt-0.5">{errors.fullName}</p>}
               </div>
@@ -196,15 +201,14 @@ const Register = () => {
               {/* Email Address */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="name@example.com"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.email && <p className="text-red-500 text-[10px] mt-0.5">{errors.email}</p>}
               </div>
@@ -212,15 +216,14 @@ const Register = () => {
               {/* Mobile Number */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Mobile Number</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="mobile"
                   value={formData.mobile}
                   onChange={handleInputChange}
                   placeholder="Enter 10-digit number"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.mobile ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.mobile ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.mobile && <p className="text-red-500 text-[10px] mt-0.5">{errors.mobile}</p>}
               </div>
@@ -228,15 +231,14 @@ const Register = () => {
               {/* Date of Birth */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Date of Birth</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   name="dob"
                   value={formData.dob}
                   onChange={handleInputChange}
                   placeholder="mm/dd/yyyy"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.dob ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.dob ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.dob && <p className="text-red-500 text-[10px] mt-0.5">{errors.dob}</p>}
               </div>
@@ -244,15 +246,14 @@ const Register = () => {
               {/* Password */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter password"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.password && <p className="text-red-500 text-[10px] mt-0.5">{errors.password}</p>}
               </div>
@@ -260,15 +261,14 @@ const Register = () => {
               {/* Confirm Password */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Confirm Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   placeholder="Re-enter password"
-                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${
-                    errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
-                  }`}
+                  className={`w-full px-3 py-2 rounded-lg border bg-white text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-[#0052cc]'
+                    }`}
                 />
                 {errors.confirmPassword && <p className="text-red-500 text-[10px] mt-0.5">{errors.confirmPassword}</p>}
               </div>
@@ -312,11 +312,10 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('Citizen')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${
-                    formData.role === 'Citizen'
-                      ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
-                      : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${formData.role === 'Citizen'
+                    ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
+                    : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
+                    }`}
                 >
                   <svg className="w-4.5 h-4.5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -328,11 +327,10 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('Gov. Official')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${
-                    formData.role === 'Gov. Official'
-                      ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
-                      : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${formData.role === 'Gov. Official'
+                    ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
+                    : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
+                    }`}
                 >
                   <svg className="w-4.5 h-4.5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -344,11 +342,10 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('Researcher/NGO')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${
-                    formData.role === 'Researcher/NGO'
-                      ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
-                      : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
-                  }`}
+                  className={`flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all cursor-pointer ${formData.role === 'Researcher/NGO'
+                    ? 'border-[#0052cc] bg-[#f0f5ff] text-[#0052cc]'
+                    : 'border-slate-300 bg-white hover:border-slate-400 text-slate-600'
+                    }`}
                 >
                   <svg className="w-4.5 h-4.5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 113.536 0V21h2v-2.243a5 5 0 01-3.536 0z" />
@@ -361,8 +358,8 @@ const Register = () => {
             {/* Terms checkbox */}
             <div className="pt-0.5">
               <label className="flex items-start gap-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   name="termsAccepted"
                   checked={formData.termsAccepted}
                   onChange={handleInputChange}
@@ -394,12 +391,24 @@ const Register = () => {
               </button>
             </div>
 
-            {/* Bottom Redirect */}
-            <div className="text-center pt-0.5">
+            {/* Bottom Redirects */}
+            <div className="text-center pt-0.5 space-y-1">
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium select-none">
                 Already have an account?{' '}
                 <Link to="/login" className="text-[#0052cc] hover:text-[#0047b3] font-bold hover:underline">
                   Sign In
+                </Link>
+              </p>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium select-none">
+                Government Official?{' '}
+                <Link to="/official-verification" className="text-[#0052cc] hover:text-[#0047b3] font-bold hover:underline">
+                  Official Verification Form
+                </Link>
+              </p>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium select-none">
+                Researcher / NGO?{' '}
+                <Link to="/organization-verification" className="text-[#0052cc] hover:text-[#0047b3] font-bold hover:underline">
+                  Organization Verification Form
                 </Link>
               </p>
             </div>
