@@ -47,7 +47,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
   }, []);
 
   const handleBookmarkToggle = (id) => {
-    setBookmarkedIds(prev => 
+    setBookmarkedIds(prev =>
       prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]
     );
   };
@@ -84,7 +84,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     if (activeTab !== "All Schemes" && scheme.category !== activeTab) {
       return false;
     }
-    
+
     // Search query filter (checks title, description, ministry)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -113,8 +113,8 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
 
   if (selectedScheme) {
     return (
-      <SchemeDetailsPage 
-        scheme={selectedScheme} 
+      <SchemeDetailsPage
+        scheme={selectedScheme}
         onBack={() => setSelectedScheme(null)}
         onApply={() => handleApply(selectedScheme)}
       />
@@ -123,18 +123,18 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
 
   return (
     <div className="w-full space-y-8 select-none">
-      
+
       {/* Top Header Row (Header Text & Actions Bar) */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <SchemesHeader matchCount={sortedSchemes.length} />
-        <FilterBar 
+        <FilterBar
           sortBy={sortBy}
           onToggleSort={handleToggleSort}
         />
       </div>
 
       {/* Category Horizontal Navigation Tab Pills */}
-      <CategoryTabs 
+      <CategoryTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
@@ -148,7 +148,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-16 w-full text-center border border-dashed border-red-300 bg-red-50/50 rounded-2xl">
           <p className="text-sm font-bold text-red-655 mb-4">{error}</p>
-          <button 
+          <button
             onClick={fetchSchemesData}
             className="px-5 py-2.5 bg-[#0052cc] hover:bg-[#0047b3] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
           >
@@ -159,7 +159,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           {sortedSchemes.map((scheme) => (
             <div key={scheme._id || scheme.id}>
-              <SchemeCard 
+              <SchemeCard
                 title={scheme.title}
                 ministry={scheme.category || scheme.department}
                 eligibilityTag={scheme.eligibilityTag || "Eligible"}

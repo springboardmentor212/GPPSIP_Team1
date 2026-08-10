@@ -56,8 +56,12 @@ const Login = () => {
       setIsSubmitting(true);
 
       try {
-        await handleLogin(formData.email, formData.password);
-        navigate("/");
+        const response = await handleLogin(formData.email, formData.password);
+        if (response?.user?.role === 'Super Admin' || response?.user?.role === 'Gov. Official') {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
       } catch (error) {
         setErrors((prev) => ({
           ...prev,

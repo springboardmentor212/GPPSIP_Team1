@@ -42,10 +42,16 @@ import ReportsPage from '../Reports/ReportsPage';
 import FeedbackPage from '../Feedback/FeedbackPage';
 import { useLocation } from 'react-router';
 
+// Import Super Admin pages
+import UserManagement from '../SuperAdmin/UserManagement';
+import AdminOversight from '../SuperAdmin/AdminOversight';
+import AuditLogs from '../SuperAdmin/AuditLogs';
+
 // Import Services
 import { getPolicies } from '../../services/policy.service';
 import { getSchemes } from '../../services/scheme.service';
 import { getMyApplications, getPendingApplications } from '../../services/application.service';
+import { getAdminStats } from '../../services/admin.service';
 
 // Import UI components
 import Modal from '../../components/modals/Modal';
@@ -66,12 +72,13 @@ const Dashboard = () => {
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [dashboardSubTab, setDashboardSubTab] = useState('Recent');
   const [dbStatus, setDbStatus] = useState('checking');
-  const [stats, setStats] = useState({ 
-    policies: 0, 
-    schemes: 0, 
-    recommendations: [], 
+  const [stats, setStats] = useState({
+    policies: 0,
+    schemes: 0,
+    recommendations: [],
     applications: 0,
-    citizen: { total: 0, pending: 0, approved: 0, rejected: 0, list: [] }
+    citizen: { total: 0, pending: 0, approved: 0, rejected: 0, list: [] },
+    admin: { totalUsers: 0, totalOfficials: 0, totalPolicies: 0, totalSchemes: 0, totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 }
   });
 
   // Sync activeTab if URL query param changes
@@ -106,9 +113,11 @@ const Dashboard = () => {
           getPolicies().catch(() => ({ success: true, policies: [] })),
           getSchemes().catch(() => ({ success: true, schemes: [] }))
         ]);
-        
+
         let appCount = 0;
         let citizenStats = { total: 0, pending: 0, approved: 0, rejected: 0, list: [] };
+        let adminStats = { totalUsers: 0, totalOfficials: 0, totalPolicies: 0, totalSchemes: 0, totalApplications: 0, pendingApplications: 0, approvedApplications: 0, rejectedApplications: 0 };
+
         if (user) {
           if (user.role === 'Citizen') {
             const appRes = await getMyApplications().catch(() => ({ success: true, applications: [] }));
@@ -122,6 +131,11 @@ const Dashboard = () => {
           } else if (user.role === 'Gov. Official' || user.role === 'Admin') {
             const appRes = await getPendingApplications('Pending').catch(() => ({ success: true, applications: [] }));
             appCount = appRes.applications?.length || 0;
+          } else if (user.role === 'Super Admin') {
+            const adminRes = await getAdminStats().catch(() => ({ success: true, stats: {} }));
+            if (adminRes.success && adminRes.stats) {
+              adminStats = adminRes.stats;
+            }
           }
         }
 
@@ -130,7 +144,8 @@ const Dashboard = () => {
           schemes: schRes.schemes?.length || 0,
           applications: appCount,
           recommendations: schRes.schemes?.slice(0, 2) || [],
-          citizen: citizenStats
+          citizen: citizenStats,
+          admin: adminStats
         });
       } catch (err) {
         console.error("Failed to load dashboard stats:", err);
@@ -186,17 +201,16 @@ const Dashboard = () => {
               <button
                 key={subTab}
                 onClick={() => setDashboardSubTab(subTab)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
-                  dashboardSubTab === subTab
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${dashboardSubTab === subTab
                     ? 'bg-[#0052cc]/10 text-[#0052cc]'
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-850 bg-transparent'
-                }`}
+                  }`}
               >
                 {subTab} ({
                   subTab === 'Recent' ? stats.citizen.list.slice(0, 3).length :
-                  subTab === 'Pending' ? stats.citizen.pending :
-                  subTab === 'Approved' ? stats.citizen.approved :
-                  stats.citizen.rejected
+                    subTab === 'Pending' ? stats.citizen.pending :
+                      subTab === 'Approved' ? stats.citizen.approved :
+                        stats.citizen.rejected
                 })
               </button>
             ))}
@@ -205,8 +219,8 @@ const Dashboard = () => {
           {/* List items */}
           <div className="space-y-4">
             {listToShow.map((app) => (
-              <div 
-                key={app._id} 
+              <div
+                key={app._id}
                 onClick={() => {
                   setSelectedAppForDetails(app);
                   setDetailsModalOpen(true);
@@ -249,9 +263,9 @@ const Dashboard = () => {
                 <FaClipboardList className="text-slate-350 w-12 h-12 mb-3" />
                 <p className="text-xs text-slate-450 font-bold">
                   {dashboardSubTab === 'Recent' ? 'No applications submitted yet.' :
-                   dashboardSubTab === 'Pending' ? 'No pending applications.' :
-                   dashboardSubTab === 'Approved' ? 'No approved applications.' :
-                   'No rejected applications.'}
+                    dashboardSubTab === 'Pending' ? 'No pending applications.' :
+                      dashboardSubTab === 'Approved' ? 'No approved applications.' :
+                        'No rejected applications.'}
                 </p>
                 {dashboardSubTab === 'Recent' && (
                   <button
@@ -319,6 +333,41 @@ const Dashboard = () => {
                     color="red"
                   />
                 </>
+              ) : user?.role === 'Super Admin' ? (
+                <>
+                  <StatsCard
+                    title="Total Users"
+                    value={stats.admin?.totalUsers || 0}
+                    growth="Citizen directory"
+                    growthType="neutral"
+                    icon={FaCheckCircle}
+                    color="blue"
+                  />
+                  <StatsCard
+                    title="Gov. Officials"
+                    value={stats.admin?.totalOfficials || 0}
+                    growth="Approved review staff"
+                    growthType="neutral"
+                    icon={FaCheckCircle}
+                    color="purple"
+                  />
+                  <StatsCard
+                    title="Total Schemes"
+                    value={stats.admin?.totalSchemes || 0}
+                    growth="Active catalog"
+                    growthType="positive"
+                    icon={FaCheckCircle}
+                    color="green"
+                  />
+                  <StatsCard
+                    title="Total Applications"
+                    value={stats.admin?.totalApplications || 0}
+                    growth="Submissions tracking"
+                    growthType="neutral"
+                    icon={FaClipboardList}
+                    color="orange"
+                  />
+                </>
               ) : (
                 <>
                   <StatsCard
@@ -362,50 +411,83 @@ const Dashboard = () => {
 
               {/* LEFT & CENTER COLUMN (2/3 width) */}
               <div className="lg:col-span-2 space-y-8">
-                
-                {/* Citizen Dashboard Application Status Tracker */}
-                {user?.role === 'Citizen' && renderApplicationTracker()}
 
-                {/* Recommended Schemes */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-slate-800 tracking-tight">Latest Schemes</h3>
-                    <button
-                      onClick={() => setActiveTab('schemes')}
-                      className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>View All Schemes</span>
-                      <FaArrowRight className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
-
-                  <div className="flex flex-col gap-5">
-                    {stats.recommendations.map((scheme, idx) => (
-                      <RecommendationCard
-                        key={scheme._id || idx}
-                        title={scheme.title}
-                        ministry={scheme.category}
-                        matchPercentage="New"
-                        eligibilityTag="Check Eligibility"
-                        description={scheme.description}
-                        isSaved={savedSchemes[idx]}
-                        onSave={() => toggleSaved(idx)}
-                        onApply={() => setActiveTab('schemes')}
-                      />
-                    ))}
-                    {stats.recommendations.length === 0 && (
-                      <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-500 font-medium">
-                        No schemes available yet.
+                {user?.role === 'Super Admin' ? (
+                  <div className="bg-white border border-slate-350 rounded-3xl p-6 space-y-4 text-left shadow-sm">
+                    <h3 className="text-base font-extrabold text-slate-800 tracking-tight">System Status Overview</h3>
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                      Detailed status tracking for all applications submitted by citizens.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                      <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-black text-slate-400 uppercase block">Pending Review</span>
+                        <span className="text-3xl font-black text-amber-600 block mt-2">{stats.admin?.pendingApplications || 0}</span>
                       </div>
-                    )}
-                  </div>
-                </div>
+                      <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-black text-slate-400 uppercase block">Approved Schemes</span>
+                        <span className="text-3xl font-black text-emerald-600 block mt-2">{stats.admin?.approvedApplications || 0}</span>
+                      </div>
+                      <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <span className="text-[10px] font-black text-slate-400 uppercase block">Rejected Submissions</span>
+                        <span className="text-3xl font-black text-rose-600 block mt-2">{stats.admin?.rejectedApplications || 0}</span>
+                      </div>
+                    </div>
 
-                {/* Performance Analytics / Chart section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ApplicationTrend />
-                  <SchemeCategoryCard />
-                </div>
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between font-semibold">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800">Total System-Wide Policies</h4>
+                        <span className="text-[10px] text-slate-400 font-light mt-0.5 block">Approved frameworks active in search indexes</span>
+                      </div>
+                      <span className="text-lg font-black text-[#0052cc]">{stats.admin?.totalPolicies || 0}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Citizen Dashboard Application Status Tracker */}
+                    {user?.role === 'Citizen' && renderApplicationTracker()}
+
+                    {/* Recommended Schemes */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Latest Schemes</h3>
+                        <button
+                          onClick={() => setActiveTab('schemes')}
+                          className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>View All Schemes</span>
+                          <FaArrowRight className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col gap-5">
+                        {stats.recommendations.map((scheme, idx) => (
+                          <RecommendationCard
+                            key={scheme._id || idx}
+                            title={scheme.title}
+                            ministry={scheme.category}
+                            matchPercentage="New"
+                            eligibilityTag="Check Eligibility"
+                            description={scheme.description}
+                            isSaved={savedSchemes[idx]}
+                            onSave={() => toggleSaved(idx)}
+                            onApply={() => setActiveTab('schemes')}
+                          />
+                        ))}
+                        {stats.recommendations.length === 0 && (
+                          <div className="p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-500 font-medium">
+                            No schemes available yet.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Performance Analytics / Chart section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ApplicationTrend />
+                      <SchemeCategoryCard />
+                    </div>
+                  </>
+                )}
 
                 {/* Recent Notifications logs */}
                 <NotificationList applications={stats.citizen?.list || []} />
@@ -491,6 +573,36 @@ const Dashboard = () => {
       case 'applications':
         return (
           <ApplicationsPage />
+        );
+
+      // Super Admin panel pages
+      case 'admin-users':
+      case 'admin-officials':
+        return (
+          <UserManagement />
+        );
+
+      case 'admin-policies':
+        return (
+          <PolicySearchPage onReadMore={(policy) => {
+            setSelectedPolicy(policy);
+            setActiveTab('policy-details');
+          }} />
+        );
+
+      case 'admin-schemes':
+        return (
+          <GovernmentSchemesPage searchQuery={searchQuery} />
+        );
+
+      case 'admin-applications':
+        return (
+          <AdminOversight />
+        );
+
+      case 'admin-audit-logs':
+        return (
+          <AuditLogs />
         );
 
       case 'saved':

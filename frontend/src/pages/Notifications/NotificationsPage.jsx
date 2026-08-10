@@ -119,7 +119,7 @@ const NotificationsPage = () => {
         return {
           id: app._id || idx,
           title: isApproved ? "Eligibility Status Approved" : "Eligibility Status Rejected",
-          subtitle: isApproved 
+          subtitle: isApproved
             ? `Your application for ${app.scheme?.title || 'the scheme'} has been successfully approved.`
             : `Your application for ${app.scheme?.title || 'the scheme'} was rejected.`,
           timestamp: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Just now',
@@ -129,14 +129,14 @@ const NotificationsPage = () => {
           iconType: isApproved ? "check" : "cog",
           category: "Application Alert",
           receivedTime: app.reviewedAt ? new Date(app.reviewedAt).toLocaleString('en-GB') : '',
-          fullTitle: isApproved 
-            ? `Application Approved: ${app.scheme?.title}` 
+          fullTitle: isApproved
+            ? `Application Approved: ${app.scheme?.title}`
             : `Application Rejected: ${app.scheme?.title}`,
           tags: ["Applications", app.status],
-          description: isApproved 
+          description: isApproved
             ? `We are pleased to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been reviewed and approved.`
             : `We regret to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been rejected. Reason: ${app.rejectionReason || 'No details provided.'}`,
-          aiInsight: isApproved 
+          aiInsight: isApproved
             ? "Your application is fully approved. You are eligible to receive maximum benefit Aid."
             : "We recommend reviewing the rejection reason, updating your documentation, and contacting support if needed.",
           department: app.scheme?.category || app.scheme?.department || "Department",

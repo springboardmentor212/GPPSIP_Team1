@@ -43,11 +43,15 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: {
-      values: ['Citizen', 'Gov. Official', 'Researcher/NGO'],
-      message: 'Role must be Citizen, Gov. Official, or Researcher/NGO'
+      values: ['Citizen', 'Gov. Official', 'Researcher/NGO', 'Super Admin'],
+      message: 'Role must be Citizen, Gov. Official, Researcher/NGO, or Super Admin'
     },
     default: 'Citizen',
     required: [true, 'Role is required']
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   },
   termsAccepted: {
     type: Boolean,
