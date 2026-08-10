@@ -58,8 +58,9 @@ const searchAll = async (req, res, next) => {
         let shouldQueryScheme = true;
 
         if (status) {
-            if (policyStatuses.includes(status)) {
-                policyQuery.status = status;
+            const mappedPolicyStatus = status === 'Active' ? 'Approved' : status;
+            if (policyStatuses.includes(mappedPolicyStatus)) {
+                policyQuery.status = mappedPolicyStatus;
             } else {
                 shouldQueryPolicy = false;
             }

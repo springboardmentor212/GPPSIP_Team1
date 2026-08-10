@@ -5,11 +5,15 @@ import CategoryTabs from '../../components/common/CategoryTabs';
 import SchemeCard from '../../components/cards/SchemeCard';
 import CTASection from '../../components/common/CTASection';
 import { getSchemes } from '../../services/scheme.service';
+import SchemeDetailsPage from './SchemeDetailsPage';
+import { applyForScheme } from '../../services/application.service';
+import useAuth from '../../hooks/useAuth';
 
 // Re-factored to industrial standard: components rely on unified Scheme object props
 // No fake placeholders used on the client.
 
 const GovernmentSchemesPage = ({ searchQuery = "" }) => {
+  const { user } = useAuth();
   // Database schemes state
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
   const [activeTab, setActiveTab] = useState("All Schemes");
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
   const [sortBy, setSortBy] = useState("Match");
+  const [selectedScheme, setSelectedScheme] = useState(null);
 
   const fetchSchemesData = async () => {
     setLoading(true);
@@ -47,13 +52,25 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     );
   };
 
-  const handleApply = (scheme) => {
-    if (scheme.applicationLink) {
-      window.open(scheme.applicationLink, '_blank', 'noopener,noreferrer');
-    } else if (scheme.officialWebsite) {
-      window.open(scheme.officialWebsite, '_blank', 'noopener,noreferrer');
-    } else {
-      alert(`No external application portal link registered for: "${scheme.title}"`);
+  const handleApply = async (scheme) => {
+    if (!user) {
+      alert("Please log in to apply for schemes.");
+      return;
+    }
+    if (user.role !== 'Citizen') {
+      alert(`Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`);
+      return;
+    }
+    const confirmApply = window.confirm(`Are you sure you want to submit an application for the scheme: "${scheme.title}"?`);
+    if (!confirmApply) return;
+
+    try {
+      const res = await applyForScheme(scheme._id || scheme.id);
+      if (res.success) {
+        alert(`Successfully applied for "${scheme.title}". Application ID: ${res.application.applicationId}`);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to submit application.");
     }
   };
 
@@ -93,6 +110,16 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
       return (a.title || "").localeCompare(b.title || "");
     }
   });
+
+  if (selectedScheme) {
+    return (
+      <SchemeDetailsPage 
+        scheme={selectedScheme} 
+        onBack={() => setSelectedScheme(null)}
+        onApply={() => handleApply(selectedScheme)}
+      />
+    );
+  }
 
   return (
     <div className="w-full space-y-8 select-none">
@@ -144,11 +171,12 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
                 isBookmarked={bookmarkedIds.includes(scheme._id || scheme.id)}
                 onBookmarkToggle={() => handleBookmarkToggle(scheme._id || scheme.id)}
                 onApply={() => handleApply(scheme)}
+                onViewDetails={() => setSelectedScheme(scheme)}
               />
             </div>
           ))}
           {sortedSchemes.length === 0 && (
-            <div className="col-span-2 py-16 text-center border border-dashed border-slate-350 bg-white rounded-2xl">
+            <div className="col-span-2 py-16 text-center border border-dashed border-slate-355 bg-white rounded-2xl">
               <p className="text-sm font-bold text-slate-400">No government schemes match your criteria.</p>
             </div>
           )}

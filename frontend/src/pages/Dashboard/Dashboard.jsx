@@ -45,6 +45,11 @@ import { useLocation } from 'react-router';
 // Import Services
 import { getPolicies } from '../../services/policy.service';
 import { getSchemes } from '../../services/scheme.service';
+import { getMyApplications, getPendingApplications } from '../../services/application.service';
+
+// Import UI components
+import Modal from '../../components/modals/Modal';
+import StatusBadge from '../../components/ui/StatusBadge';
 
 const Dashboard = () => {
   const { user, handleLogout } = useAuth();
@@ -56,9 +61,18 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [savedSchemes, setSavedSchemes] = useState([false, false]); // Toggle bookmarks
+  const [selectedAppForDetails, setSelectedAppForDetails] = useState(null);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [dashboardSubTab, setDashboardSubTab] = useState('Recent');
   const [dbStatus, setDbStatus] = useState('checking');
-  const [stats, setStats] = useState({ policies: 0, schemes: 0, recommendations: [] });
+  const [stats, setStats] = useState({ 
+    policies: 0, 
+    schemes: 0, 
+    recommendations: [], 
+    applications: 0,
+    citizen: { total: 0, pending: 0, approved: 0, rejected: 0, list: [] }
+  });
 
   // Sync activeTab if URL query param changes
   useEffect(() => {
@@ -88,11 +102,35 @@ const Dashboard = () => {
     // Fetch live dashboard stats
     const fetchStats = async () => {
       try {
-        const [polRes, schRes] = await Promise.all([getPolicies(), getSchemes()]);
+        const [polRes, schRes] = await Promise.all([
+          getPolicies().catch(() => ({ success: true, policies: [] })),
+          getSchemes().catch(() => ({ success: true, schemes: [] }))
+        ]);
+        
+        let appCount = 0;
+        let citizenStats = { total: 0, pending: 0, approved: 0, rejected: 0, list: [] };
+        if (user) {
+          if (user.role === 'Citizen') {
+            const appRes = await getMyApplications().catch(() => ({ success: true, applications: [] }));
+            const apps = appRes.applications || [];
+            citizenStats.total = apps.length;
+            citizenStats.pending = apps.filter(a => a.status === 'Pending').length;
+            citizenStats.approved = apps.filter(a => a.status === 'Approved').length;
+            citizenStats.rejected = apps.filter(a => a.status === 'Rejected').length;
+            citizenStats.list = apps;
+            appCount = apps.length;
+          } else if (user.role === 'Gov. Official' || user.role === 'Admin') {
+            const appRes = await getPendingApplications('Pending').catch(() => ({ success: true, applications: [] }));
+            appCount = appRes.applications?.length || 0;
+          }
+        }
+
         setStats({
           policies: polRes.policies?.length || 0,
           schemes: schRes.schemes?.length || 0,
-          recommendations: schRes.schemes?.slice(0, 2) || []
+          applications: appCount,
+          recommendations: schRes.schemes?.slice(0, 2) || [],
+          citizen: citizenStats
         });
       } catch (err) {
         console.error("Failed to load dashboard stats:", err);
@@ -115,6 +153,122 @@ const Dashboard = () => {
     });
   };
 
+  const renderApplicationTracker = () => {
+    // Determine list to show
+    let listToShow = [];
+    if (dashboardSubTab === 'Recent') {
+      listToShow = stats.citizen.list.slice(0, 3);
+    } else if (dashboardSubTab === 'Pending') {
+      listToShow = stats.citizen.list.filter(a => a.status === 'Pending');
+    } else if (dashboardSubTab === 'Approved') {
+      listToShow = stats.citizen.list.filter(a => a.status === 'Approved');
+    } else if (dashboardSubTab === 'Rejected') {
+      listToShow = stats.citizen.list.filter(a => a.status === 'Rejected');
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-black text-slate-800 tracking-tight">Application Status Tracker</h3>
+          <button
+            onClick={() => setActiveTab('applications')}
+            className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer border-none bg-transparent"
+          >
+            <span>Manage All Applications</span>
+            <FaArrowRight className="w-2.5 h-2.5" />
+          </button>
+        </div>
+
+        <div className="bg-white rounded-3xl border border-slate-300 p-6 shadow-sm space-y-6">
+          {/* Sub-tabs */}
+          <div className="flex items-center gap-2 border-b border-slate-200 pb-3 flex-wrap">
+            {['Recent', 'Pending', 'Approved', 'Rejected'].map((subTab) => (
+              <button
+                key={subTab}
+                onClick={() => setDashboardSubTab(subTab)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                  dashboardSubTab === subTab
+                    ? 'bg-[#0052cc]/10 text-[#0052cc]'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-850 bg-transparent'
+                }`}
+              >
+                {subTab} ({
+                  subTab === 'Recent' ? stats.citizen.list.slice(0, 3).length :
+                  subTab === 'Pending' ? stats.citizen.pending :
+                  subTab === 'Approved' ? stats.citizen.approved :
+                  stats.citizen.rejected
+                })
+              </button>
+            ))}
+          </div>
+
+          {/* List items */}
+          <div className="space-y-4">
+            {listToShow.map((app) => (
+              <div 
+                key={app._id} 
+                onClick={() => {
+                  setSelectedAppForDetails(app);
+                  setDetailsModalOpen(true);
+                }}
+                className="border border-slate-200 hover:border-slate-350 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all cursor-pointer bg-slate-50/50 hover:bg-slate-50"
+              >
+                <div className="space-y-1.5 text-left">
+                  <h4 className="text-sm font-extrabold text-slate-800 line-clamp-1">{app.scheme?.title || 'Unknown Scheme'}</h4>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-[10px] font-bold">
+                    <span>ID: <span className="font-mono text-slate-705">{app.applicationId}</span></span>
+                    <span>Submitted: <span className="text-slate-500">{new Date(app.submittedAt || app.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></span>
+                    {app.status === 'Approved' && app.reviewedAt && (
+                      <span>Approved: <span className="text-emerald-600">{new Date(app.reviewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></span>
+                    )}
+                  </div>
+                  {app.status === 'Rejected' && app.rejectionReason && (
+                    <div className="mt-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-xl px-3 py-1.5 max-w-xl">
+                      <span className="font-bold text-rose-800">Reason:</span> "{app.rejectionReason}"
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                  <StatusBadge status={app.status} />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedAppForDetails(app);
+                      setDetailsModalOpen(true);
+                    }}
+                    className="px-3.5 py-1.5 bg-[#0052cc]/10 hover:bg-[#0052cc]/20 text-[#0052cc] rounded-xl text-xs font-bold transition-all cursor-pointer border-none"
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {listToShow.length === 0 && (
+              <div className="text-center py-10 flex flex-col items-center justify-center">
+                <FaClipboardList className="text-slate-350 w-12 h-12 mb-3" />
+                <p className="text-xs text-slate-450 font-bold">
+                  {dashboardSubTab === 'Recent' ? 'No applications submitted yet.' :
+                   dashboardSubTab === 'Pending' ? 'No pending applications.' :
+                   dashboardSubTab === 'Approved' ? 'No approved applications.' :
+                   'No rejected applications.'}
+                </p>
+                {dashboardSubTab === 'Recent' && (
+                  <button
+                    onClick={() => setActiveTab('schemes')}
+                    className="mt-4 px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white text-xs font-bold rounded-xl cursor-pointer border-none shadow-sm"
+                  >
+                    Explore Government Schemes
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render tab content dynamically
   const renderTabContent = () => {
     switch (activeTab) {
@@ -130,38 +284,77 @@ const Dashboard = () => {
 
             {/* Statistics Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <StatsCard
-                title="Total Schemes"
-                value={stats.schemes}
-                growth="Active directory"
-                growthType="positive"
-                icon={FaCheckCircle}
-                color="blue"
-              />
-              <StatsCard
-                title="Total Policies"
-                value={stats.policies}
-                growth="Active directory"
-                growthType="neutral"
-                icon={FaBookmark}
-                color="purple"
-              />
-              <StatsCard
-                title="Applications"
-                value="0"
-                growth="Awaiting processing"
-                growthType="neutral"
-                icon={FaClipboardList}
-                color="orange"
-              />
-              <StatsCard
-                title="Notifications"
-                value="0"
-                growth="All caught up"
-                growthType="positive"
-                icon={FaBell}
-                color="green"
-              />
+              {user?.role === 'Citizen' ? (
+                <>
+                  <StatsCard
+                    title="Total Applications"
+                    value={stats.citizen?.total || 0}
+                    growth="All submissions"
+                    growthType="neutral"
+                    icon={FaClipboardList}
+                    color="blue"
+                  />
+                  <StatsCard
+                    title="Pending Review"
+                    value={stats.citizen?.pending || 0}
+                    growth="Awaiting decision"
+                    growthType="neutral"
+                    icon={FaClipboardList}
+                    color="orange"
+                  />
+                  <StatsCard
+                    title="Approved Schemes"
+                    value={stats.citizen?.approved || 0}
+                    growth="Ready to benefit"
+                    growthType="positive"
+                    icon={FaCheckCircle}
+                    color="green"
+                  />
+                  <StatsCard
+                    title="Rejected Schemes"
+                    value={stats.citizen?.rejected || 0}
+                    growth="Needs attention"
+                    growthType="negative"
+                    icon={FaClipboardList}
+                    color="red"
+                  />
+                </>
+              ) : (
+                <>
+                  <StatsCard
+                    title="Total Schemes"
+                    value={stats.schemes}
+                    growth="Active directory"
+                    growthType="positive"
+                    icon={FaCheckCircle}
+                    color="blue"
+                  />
+                  <StatsCard
+                    title="Total Policies"
+                    value={stats.policies}
+                    growth="Active directory"
+                    growthType="neutral"
+                    icon={FaBookmark}
+                    color="purple"
+                  />
+                  <StatsCard
+                    title="Pending Approvals"
+                    value={stats.applications || 0}
+                    growth="Action Required"
+                    growthType="neutral"
+                    icon={FaClipboardList}
+                    color="orange"
+                  />
+                  <StatsCard
+                    title="Notifications"
+                    value="0"
+                    growth="All caught up"
+                    growthType="positive"
+                    icon={FaBell}
+                    color="green"
+                  />
+                </>
+              )}
             </div>
 
             {/* Core Multi-Column Content Layout */}
@@ -169,6 +362,9 @@ const Dashboard = () => {
 
               {/* LEFT & CENTER COLUMN (2/3 width) */}
               <div className="lg:col-span-2 space-y-8">
+                
+                {/* Citizen Dashboard Application Status Tracker */}
+                {user?.role === 'Citizen' && renderApplicationTracker()}
 
                 {/* Recommended Schemes */}
                 <div className="space-y-4">
@@ -212,7 +408,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Recent Notifications logs */}
-                <NotificationList />
+                <NotificationList applications={stats.citizen?.list || []} />
 
               </div>
 
@@ -343,15 +539,95 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardLayout
-      user={user}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      handleLogout={handleLogout}
-      setSearchQuery={setSearchQuery}
-    >
-      {renderTabContent()}
-    </DashboardLayout>
+    <>
+      <DashboardLayout
+        user={user}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        handleLogout={handleLogout}
+        setSearchQuery={setSearchQuery}
+      >
+        {renderTabContent()}
+      </DashboardLayout>
+
+      {/* Modal for Application Details */}
+      <Modal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        title="Application details"
+      >
+        {selectedAppForDetails && (
+          <div className="space-y-6 text-left">
+            {/* Scheme Info */}
+            <div className="border-b border-slate-200 pb-4">
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Scheme Information</h4>
+              <p className="text-sm font-extrabold text-slate-800">{selectedAppForDetails.scheme?.title || 'N/A'}</p>
+              <p className="text-xs font-semibold text-slate-500 mt-1">
+                <span className="font-bold text-slate-650">Department/Ministry:</span> {selectedAppForDetails.scheme?.category || selectedAppForDetails.scheme?.department || 'N/A'}
+              </p>
+              <p className="text-xs font-light text-slate-600 mt-2 leading-relaxed">
+                {selectedAppForDetails.scheme?.description || 'N/A'}
+              </p>
+            </div>
+
+            {/* Applicant Info */}
+            <div className="border-b border-slate-200 pb-4">
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Applicant Information</h4>
+              <div className="grid grid-cols-2 gap-4 text-xs font-semibold text-slate-500">
+                <div>
+                  <span className="block font-bold text-slate-650">Full Name</span>
+                  <span className="text-slate-800 font-extrabold">{selectedAppForDetails.applicant?.fullName || user.fullName || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="block font-bold text-slate-650">Email</span>
+                  <span className="text-slate-800 font-extrabold">{selectedAppForDetails.applicant?.email || user.email || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="block font-bold text-slate-650">Mobile</span>
+                  <span className="text-slate-800 font-extrabold">{selectedAppForDetails.applicant?.mobile || user.mobile || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="block font-bold text-slate-650">DOB</span>
+                  <span className="text-slate-800 font-extrabold">
+                    {selectedAppForDetails.applicant?.dob ? new Date(selectedAppForDetails.applicant.dob).toLocaleDateString('en-GB') : user.dob ? new Date(user.dob).toLocaleDateString('en-GB') : 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="block font-bold text-slate-650">State</span>
+                  <span className="text-slate-800 font-extrabold">{selectedAppForDetails.applicant?.state || user.state || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="block font-bold text-slate-650">District</span>
+                  <span className="text-slate-800 font-extrabold">{selectedAppForDetails.applicant?.district || user.district || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Application Status */}
+            <div>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Application Status</h4>
+              <div className="flex items-center gap-3">
+                <StatusBadge status={selectedAppForDetails.status} />
+                <span className="text-[10px] font-bold text-slate-400">
+                  Submitted: {new Date(selectedAppForDetails.submittedAt || selectedAppForDetails.createdAt).toLocaleString('en-GB')}
+                </span>
+              </div>
+              {selectedAppForDetails.status === 'Rejected' && (
+                <div className="mt-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl">
+                  <h5 className="text-[10px] font-black text-rose-600 uppercase tracking-wider mb-1">Rejection Reason</h5>
+                  <p className="text-xs font-bold text-rose-700 leading-relaxed">{selectedAppForDetails.rejectionReason || 'No details provided.'}</p>
+                </div>
+              )}
+              {selectedAppForDetails.status === 'Approved' && selectedAppForDetails.reviewedAt && (
+                <p className="text-[10px] font-bold text-slate-400 mt-2">
+                  Approved on: {new Date(selectedAppForDetails.reviewedAt).toLocaleString('en-GB')}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+    </>
   );
 };
 

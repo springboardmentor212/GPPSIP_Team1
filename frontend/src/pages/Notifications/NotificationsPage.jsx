@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import NotificationHeader from './NotificationHeader';
 import NotificationFilterBar from './NotificationFilterBar';
 import NotificationTabs from './NotificationTabs';
@@ -8,6 +8,8 @@ import SummaryHealthWidget from './SummaryHealthWidget';
 import RecentActivityTimeline from './RecentActivityTimeline';
 import Footer from '../../components/layout/Footer';
 import { FaChevronDown } from 'react-icons/fa';
+import useAuth from '../../hooks/useAuth';
+import { getMyApplications } from '../../services/application.service';
 
 const NotificationsPage = () => {
   // Mock notifications dataset reflecting design mockup
@@ -92,6 +94,66 @@ const NotificationsPage = () => {
 
   // Selected Notification state
   const [selectedId, setSelectedId] = useState(1);
+  const { user } = useAuth();
+  const [apps, setApps] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === 'Citizen') {
+      setLoading(true);
+      getMyApplications()
+        .then(res => {
+          if (res.success && Array.isArray(res.applications)) {
+            setApps(res.applications);
+          }
+        })
+        .catch(err => console.error(err))
+        .finally(() => setLoading(false));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && user.role === 'Citizen' && apps.length > 0) {
+      const mapped = apps.filter(a => a.status === 'Approved' || a.status === 'Rejected').map((app, idx) => {
+        const isApproved = app.status === 'Approved';
+        return {
+          id: app._id || idx,
+          title: isApproved ? "Eligibility Status Approved" : "Eligibility Status Rejected",
+          subtitle: isApproved 
+            ? `Your application for ${app.scheme?.title || 'the scheme'} has been successfully approved.`
+            : `Your application for ${app.scheme?.title || 'the scheme'} was rejected.`,
+          timestamp: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Just now',
+          unread: false,
+          priority: isApproved ? "HIGH" : "NORMAL",
+          source: app.scheme?.department || app.scheme?.category || "Gov. Department",
+          iconType: isApproved ? "check" : "cog",
+          category: "Application Alert",
+          receivedTime: app.reviewedAt ? new Date(app.reviewedAt).toLocaleString('en-GB') : '',
+          fullTitle: isApproved 
+            ? `Application Approved: ${app.scheme?.title}` 
+            : `Application Rejected: ${app.scheme?.title}`,
+          tags: ["Applications", app.status],
+          description: isApproved 
+            ? `We are pleased to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been reviewed and approved.`
+            : `We regret to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been rejected. Reason: ${app.rejectionReason || 'No details provided.'}`,
+          aiInsight: isApproved 
+            ? "Your application is fully approved. You are eligible to receive maximum benefit Aid."
+            : "We recommend reviewing the rejection reason, updating your documentation, and contacting support if needed.",
+          department: app.scheme?.category || app.scheme?.department || "Department",
+          publishedDate: app.reviewedAt ? new Date(app.reviewedAt).toLocaleDateString('en-GB') : '',
+          isSaved: false
+        };
+      });
+      setNotifications(mapped);
+      if (mapped.length > 0) {
+        setSelectedId(mapped[0].id);
+      } else {
+        setNotifications([]);
+      }
+    } else if (user && user.role === 'Citizen') {
+      setNotifications([]);
+    }
+  }, [apps, user]);
 
   // Filter States
   const [activeTab, setActiveTab] = useState("all");

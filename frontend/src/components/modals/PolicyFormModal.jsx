@@ -54,8 +54,9 @@ const PolicyFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => 
     setError(null);
     try {
       let response;
-      if (initialData && initialData.id) {
-        response = await updatePolicy(initialData.id, formValues);
+      const policyId = initialData?._id || initialData?.id;
+      if (initialData && policyId) {
+        response = await updatePolicy(policyId, formValues);
       } else {
         response = await createPolicy(formValues);
       }

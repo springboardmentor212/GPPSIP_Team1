@@ -26,7 +26,7 @@ const createSchemeSchema = z.object({
     title: z.string({ required_error: 'Scheme title is required' }).trim().min(1, 'Title cannot be empty'),
     description: z.string({ required_error: 'Scheme description is required' }).trim().min(1, 'Description cannot be empty'),
     category: z.enum(schemeCategories, { errorMap: () => ({ message: 'Invalid category' }) }),
-    eligibilityRules: eligibilitySchema
+    eligibilityRules: eligibilitySchema.optional()
   })
 });
 
@@ -35,7 +35,7 @@ const updateSchemeSchema = z.object({
     title: z.string().trim().min(1).optional(),
     description: z.string().trim().min(1).optional(),
     category: z.enum(schemeCategories).optional(),
-    eligibilityRules: eligibilitySchema
+    eligibilityRules: eligibilitySchema.optional()
   })
 });
 

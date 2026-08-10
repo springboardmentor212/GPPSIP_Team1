@@ -1,8 +1,30 @@
 import React, { useState } from 'react';
 import { FaBell, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+import useAuth from '../../hooks/useAuth';
 
-const NotificationList = () => {
-  const [notifications, setNotifications] = useState([
+const NotificationList = ({ applications = [] }) => {
+  const { user } = useAuth();
+  
+  const getCitizenNotifications = () => {
+    const filteredApps = applications.filter(a => a.status === 'Approved' || a.status === 'Rejected');
+    return filteredApps.map((app, idx) => {
+      const isApproved = app.status === 'Approved';
+      return {
+        id: app._id || idx,
+        title: isApproved ? "Application Approved" : "Application Rejected",
+        text: isApproved 
+          ? `Your application for '${app.scheme?.title || 'Scheme'}' has been successfully processed.` 
+          : `Your application for '${app.scheme?.title || 'Scheme'}' has been rejected. Reason: ${app.rejectionReason || 'No details provided.'}`,
+        time: app.reviewedAt 
+          ? new Date(app.reviewedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) 
+          : new Date(app.updatedAt || app.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        type: isApproved ? "success" : "info"
+      };
+    });
+  };
+
+  const isCitizen = user && user.role === 'Citizen';
+  const notifications = isCitizen ? getCitizenNotifications() : [
     {
       id: 1,
       title: "Application Approved",
@@ -17,10 +39,10 @@ const NotificationList = () => {
       time: "Yesterday, 4:30 PM",
       type: "info"
     }
-  ]);
+  ];
 
   const handleMarkAllRead = () => {
-    setNotifications([]);
+    // Read-only/clear placeholder for mock list
   };
 
   const getIcon = (type) => {
