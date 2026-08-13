@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { getSchemeById } from '../../services/scheme.service';
+import { applyForScheme } from '../../services/application.service';
+import useAuth from '../../hooks/useAuth';
 
 const StandaloneSchemePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [scheme, setScheme] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,6 +30,29 @@ const StandaloneSchemePage = () => {
     };
     fetchScheme();
   }, [id]);
+
+  const handleApply = async (schemeItem) => {
+    if (!user) {
+      alert("Please log in to apply for schemes.");
+      return;
+    }
+    if (user.role !== 'Citizen') {
+      alert(`Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`);
+      return;
+    }
+    const confirmApply = window.confirm(`Are you sure you want to submit an application for the scheme: "${schemeItem.title}"?`);
+    if (!confirmApply) return;
+
+    try {
+      const res = await applyForScheme(schemeItem._id || schemeItem.id);
+      if (res.success) {
+        alert(`Successfully applied for "${schemeItem.title}". Application ID: ${res.application.applicationId}`);
+        navigate('/dashboard?tab=applications');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to submit application.");
+    }
+  };
 
   if (loading) {
     return (
@@ -50,7 +76,13 @@ const StandaloneSchemePage = () => {
     );
   }
 
-  return <SchemeDetailsPage scheme={scheme} onBack={() => navigate('/dashboard?tab=applications')} />;
+  return (
+    <SchemeDetailsPage 
+      scheme={scheme} 
+      onBack={() => navigate('/dashboard?tab=applications')} 
+      onApply={() => handleApply(scheme)}
+    />
+  );
 };
 
 export default StandaloneSchemePage;

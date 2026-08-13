@@ -51,8 +51,9 @@ const SchemeFormModal = ({ isOpen, onClose, onSuccess, initialData = null }) => 
     setError(null);
     try {
       let response;
-      if (initialData && initialData.id) {
-        response = await updateScheme(initialData.id, formValues);
+      const schemeId = initialData?._id || initialData?.id;
+      if (initialData && schemeId) {
+        response = await updateScheme(schemeId, formValues);
       } else {
         response = await createScheme(formValues);
       }

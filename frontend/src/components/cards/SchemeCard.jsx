@@ -12,7 +12,8 @@ const SchemeCard = ({
   tags = [], 
   isBookmarked = false, 
   onBookmarkToggle, 
-  onApply 
+  onApply,
+  onViewDetails
 }) => {
 
   // Dynamic icon selector based on title or category
@@ -54,7 +55,10 @@ const SchemeCard = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-300 p-6 shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-300 flex flex-col justify-between h-full group text-left">
+    <div 
+      onClick={onViewDetails}
+      className="bg-white rounded-2xl border border-slate-300 p-6 shadow-sm hover:shadow-md hover:border-slate-400 transition-all duration-300 flex flex-col justify-between h-full group text-left cursor-pointer"
+    >
       
       {/* Top Header Layout: Icon, Title, Ministry, Match badges */}
       <div className="space-y-4">
@@ -131,7 +135,7 @@ const SchemeCard = ({
         {/* Bookmark & Apply */}
         <div className="flex items-center gap-2 shrink-0">
           <button 
-            onClick={onBookmarkToggle}
+            onClick={(e) => { e.stopPropagation(); onBookmarkToggle(); }}
             className={`w-9 h-9 border rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
               isBookmarked 
                 ? 'border-blue-200 bg-blue-50 text-[#0052cc] hover:bg-blue-100' 
@@ -142,8 +146,8 @@ const SchemeCard = ({
           </button>
 
           <button 
-            onClick={onApply}
-            className="px-4 h-9 bg-[#0052cc] hover:bg-[#0047b3] text-white font-extrabold rounded-xl text-xs transition-colors shadow-sm cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); onApply(); }}
+            className="px-4 h-9 bg-[#0052cc] hover:bg-[#0047b3] text-white font-extrabold rounded-xl text-xs transition-colors shadow-sm cursor-pointer border-none"
           >
             Apply Now
           </button>
