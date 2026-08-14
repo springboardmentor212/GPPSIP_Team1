@@ -22,6 +22,11 @@ const comparisonRouter = require('./routes/comparison.routes');
 const searchRouter = require('./routes/search.routes');
 const eligibilityRouter = require('./routes/eligibility.routes');
 const applicationRouter = require('./routes/application.routes');
+<<<<<<< HEAD
+=======
+const feedbackRouter = require('./routes/feedback.routes');
+const analyticsRouter = require('./routes/analytics.routes');
+>>>>>>> 3842608 (feat: analytics-engine)
 
 /* using routes */
 app.use('/api/auth', authRouter);
@@ -32,6 +37,11 @@ app.use('/api/schemes', eligibilityRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/compare', comparisonRouter);
 app.use('/api/applications', applicationRouter);
+<<<<<<< HEAD
+=======
+app.use('/api/feedback', feedbackRouter);
+app.use('/api/analytics', analyticsRouter);
+>>>>>>> 3842608 (feat: analytics-engine)
 
 /* health check route */
 app.get('/health', (req, res) => {
