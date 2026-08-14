@@ -22,6 +22,7 @@ const comparisonRouter = require('./routes/comparison.routes');
 const searchRouter = require('./routes/search.routes');
 const eligibilityRouter = require('./routes/eligibility.routes');
 const applicationRouter = require('./routes/application.routes');
+const notificationRouter = require('./routes/notification.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
@@ -32,6 +33,7 @@ app.use('/api/schemes', eligibilityRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/compare', comparisonRouter);
 app.use('/api/applications', applicationRouter);
+app.use('/api/notifications', notificationRouter);
 
 /* health check route */
 app.get('/health', (req, res) => {
