@@ -193,7 +193,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
 
   return (
     <div className="w-full space-y-8 select-none">
-      
+
 
       {/* Page Header (Breadcrumbs, Title, Subtitle, Actions) */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 text-left">
@@ -227,7 +227,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
             <span className="px-2.5 py-0.5 bg-blue-50 text-[#0052cc] border border-blue-150 rounded-lg text-[10px] font-black uppercase">
               {categoryFilter}
             </span>
-            <button 
+            <button
               onClick={() => setCategoryFilter("All")}
               className="text-[10px] font-extrabold text-[#0052cc] hover:underline cursor-pointer"
             >
@@ -235,7 +235,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
             </button>
           </div>
         )}
-        <SavedPolicyGrid 
+        <SavedPolicyGrid
           savedList={filteredList}
           onQuickOpen={handleQuickOpen}
           onRemove={handleRemove}
@@ -244,7 +244,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
       </div>
 
       {/* Recent Activity Section */}
-      <BookmarkActivity 
+      <BookmarkActivity
         activities={activities}
         onClearHistory={handleClearHistory}
         onCompare={handleCompare}

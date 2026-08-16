@@ -29,10 +29,12 @@ const registerSchema = z.object({
       .trim()
       .min(1, 'District cannot be empty'),
       
-    role: z.enum(['Citizen', 'Gov. Official', 'Researcher/NGO'], {
-      errorMap: () => ({ message: 'Role must be Citizen, Gov. Official, or Researcher/NGO' })
+    role: z.enum(['Citizen', 'Gov. Official', 'Researcher/NGO', 'Super Admin'], {
+      errorMap: () => ({ message: 'Role must be Citizen, Gov. Official, Researcher/NGO, or Super Admin' })
     }).default('Citizen'),
     
+    adminKey: z.string().optional(),
+
     termsAccepted: z.boolean({ required_error: 'You must accept the terms of service' })
       .refine((val) => val === true, 'You must accept the terms of service')
   })
