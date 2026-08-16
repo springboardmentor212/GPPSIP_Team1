@@ -127,8 +127,8 @@ const CitizenFeedbackView = ({ user, onCreateTicket, toast }) => {
                                 key={t.id}
                                 onClick={() => setSelectedTicket(t)}
                                 className={`bg-white border rounded-2xl p-4 shadow-sm cursor-pointer transition-all ${selectedTicket?.id === t.id
-                                        ? 'border-[#0052cc] ring-2 ring-blue-500/10'
-                                        : 'border-slate-200 hover:border-slate-300'
+                                    ? 'border-[#0052cc] ring-2 ring-blue-500/10'
+                                    : 'border-slate-200 hover:border-slate-300'
                                     }`}
                             >
                                 <div className="flex items-center justify-between text-xs gap-2">

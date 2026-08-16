@@ -24,22 +24,40 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
     navigate(`/dashboard?tab=${tabId}`, { replace: true });
   };
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: FaThLarge },
-    { id: 'search', label: 'Policy Search', icon: FaSearch },
-    { id: 'schemes', label: 'Government Schemes', icon: FaBook },
-    { id: 'eligibility', label: 'Eligibility Checker', icon: FaUserCheck },
-    ...(user && (user.role === 'Gov. Official' || user.role === 'Admin')
-      ? [
-        { id: 'reports', label: 'Analytics', icon: FaChartBar },
-        { id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }
-      ]
-      : []),
-    { id: 'saved', label: 'Saved Policies', icon: FaBookmark },
-    { id: 'feedback', label: 'Feedback & Support', icon: FaHeadset },
-    { id: 'notifications', label: 'Notifications', icon: FaBell },
-    { id: 'ai', label: 'AI Assistant', icon: FaRobot },
-  ];
+  const getMenuItems = () => {
+    if (user && user.role === 'Super Admin') {
+      return [
+        { id: 'dashboard', label: 'Dashboard', icon: FaThLarge },
+        { id: 'admin-users', label: 'Users', icon: FaUser },
+        { id: 'admin-officials', label: 'Gov. Officials', icon: FaUserCheck },
+        { id: 'admin-policies', label: 'Policies', icon: FaBook },
+        { id: 'admin-schemes', label: 'Government Schemes', icon: FaBook },
+        { id: 'admin-applications', label: 'Applications', icon: FaClipboardList },
+        { id: 'reports', label: 'Analytics & Reports', icon: FaChartBar },
+        { id: 'notifications', label: 'Notifications', icon: FaBell },
+        { id: 'admin-audit-logs', label: 'Audit Logs', icon: FaClipboardList },
+      ];
+    }
+
+    return [
+      { id: 'dashboard', label: 'Dashboard', icon: FaThLarge },
+      { id: 'search', label: 'Policy Search', icon: FaSearch },
+      { id: 'schemes', label: 'Government Schemes', icon: FaBook },
+      { id: 'eligibility', label: 'Eligibility Checker', icon: FaUserCheck },
+      ...(user && (user.role === 'Gov. Official' || user.role === 'Admin')
+        ? [
+          { id: 'reports', label: 'Analytics', icon: FaChartBar },
+          { id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }
+        ]
+        : []),
+      { id: 'saved', label: 'Saved Policies', icon: FaBookmark },
+      { id: 'feedback', label: 'Feedback & Support', icon: FaHeadset },
+      { id: 'notifications', label: 'Notifications', icon: FaBell },
+      { id: 'ai', label: 'AI Assistant', icon: FaRobot },
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <aside className="w-72 bg-white border-r border-slate-300 flex flex-col shrink-0 h-screen sticky top-0">

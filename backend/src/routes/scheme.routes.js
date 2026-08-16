@@ -21,7 +21,7 @@ const schemeRouter = express.Router();
  * @desc Register a new scheme
  * @access Private (Gov. Official)
  */
-schemeRouter.post('/', identifyUser, authorize(['Gov. Official']), validate(createSchemeSchema), createScheme);
+schemeRouter.post('/', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(createSchemeSchema), createScheme);
 
 /**
  * @route GET /api/schemes
@@ -40,15 +40,15 @@ schemeRouter.get('/:id', getSchemeById);
 /**
  * @route PUT /api/schemes/:id
  * @desc Update a scheme
- * @access Private (Gov. Official)
+ * @access Private (Gov. Official, Super Admin)
  */
-schemeRouter.put('/:id', identifyUser, authorize(['Gov. Official']), validate(updateSchemeSchema), updateScheme);
+schemeRouter.put('/:id', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updateSchemeSchema), updateScheme);
 
 /**
  * @route PATCH /api/schemes/:id/archive
  * @desc Archive a scheme
- * @access Private (Gov. Official)
+ * @access Private (Gov. Official, Super Admin)
  */
-schemeRouter.patch('/:id/archive', identifyUser, authorize(['Gov. Official']), archiveScheme);
+schemeRouter.patch('/:id/archive', identifyUser, authorize(['Gov. Official', 'Super Admin']), archiveScheme);
 
 module.exports = schemeRouter;
