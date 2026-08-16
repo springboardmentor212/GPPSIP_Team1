@@ -9,7 +9,17 @@ const User = require('../models/user.model');
  */
 const registerController = async (req, res, next) => {
     try {
-        const { fullName, email, mobile, dob, password, state, district, role } = req.body;
+        const { fullName, email, mobile, dob, password, state, district, role, adminKey } = req.body;
+
+        if (role === 'Super Admin') {
+            const expectedKey = process.env.SUPER_ADMIN_KEY || 'policygpt_super_admin_secret_key_123';
+            if (!adminKey || adminKey !== expectedKey) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Forbidden: Invalid Admin Security Key'
+                });
+            }
+        }
 
         const normalizedEmail = email.trim().toLowerCase();
         const normalizedMobile = mobile.trim();
