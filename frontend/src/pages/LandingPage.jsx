@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import useAuth from '../hooks/useAuth';
+import { getSchemes } from '../services/scheme.service';
+import Modal from '../components/modals/Modal';
 
 const LandingPage = () => {
   const { user, handleLogout } = useAuth();
@@ -22,13 +24,52 @@ const LandingPage = () => {
     { value: '1M+', label: 'Citizens Assisted' }
   ];
 
+  const [schemes, setSchemes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedScheme, setSelectedScheme] = useState(null);
+  
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [contactSubmitted, setContactSubmitted] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    getSchemes()
+      .then((res) => {
+        if (res.success && Array.isArray(res.schemes)) {
+          setSchemes(res.schemes);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleTagClick = (tag) => {
     setSearchQuery(tag);
+    setTimeout(() => {
+      const element = document.getElementById('schemes');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    alert(`Searching for: "${searchQuery}" (Search logic is pending backend implementation)`);
+    const element = document.getElementById('schemes');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      alert("Name, Email, and Message are required.");
+      return;
+    }
+    setContactSubmitted(true);
+    setContactForm({ name: '', email: '', subject: '', message: '' });
+    setTimeout(() => setContactSubmitted(false), 5000);
   };
 
   return (
@@ -225,6 +266,207 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* Schemes Section */}
+        <section id="schemes" className="py-12 border-b border-slate-200/80 scroll-mt-24">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Government Schemes</h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-2">
+              Browse government active catalog directory and search schemes by tags.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 bg-white border border-slate-200 rounded-3xl shadow-sm">
+              <div className="w-10 h-10 border-4 border-[#0052cc] border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs font-bold text-slate-400 mt-4">Loading schemes from database...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {schemes
+                .filter((s) => {
+                  if (!searchQuery.trim()) return true;
+                  const query = searchQuery.toLowerCase();
+                  return (
+                    s.title?.toLowerCase().includes(query) ||
+                    s.description?.toLowerCase().includes(query) ||
+                    s.category?.toLowerCase().includes(query)
+                  );
+                })
+                .map((scheme) => (
+                  <div key={scheme._id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between text-left">
+                    <div className="space-y-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 border border-blue-100 tracking-wider">
+                        {scheme.category || 'General'}
+                      </span>
+                      <h3 className="text-base font-extrabold text-slate-800 line-clamp-1">{scheme.title}</h3>
+                      <p className="text-xs text-slate-500 font-light line-clamp-3 leading-relaxed">
+                        {scheme.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 pt-5 mt-6 border-t border-slate-100">
+                      <button
+                        onClick={() => setSelectedScheme(scheme)}
+                        className="text-xs font-bold text-[#0052cc] hover:underline cursor-pointer border-none bg-transparent"
+                      >
+                        View Details
+                      </button>
+                      <Link
+                        to={user ? "/dashboard?tab=schemes" : "/login"}
+                        className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white font-bold rounded-xl text-xs shadow-sm transition-colors text-center cursor-pointer decoration-none"
+                      >
+                        Apply Now
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              {schemes.filter((s) => {
+                if (!searchQuery.trim()) return true;
+                const query = searchQuery.toLowerCase();
+                return (
+                  s.title?.toLowerCase().includes(query) ||
+                  s.description?.toLowerCase().includes(query) ||
+                  s.category?.toLowerCase().includes(query)
+                );
+              }).length === 0 && (
+                <div className="col-span-full py-16 text-center bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                  <p className="text-xs font-bold text-slate-400">No active schemes found matching "{searchQuery}".</p>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Eligibility Section */}
+        <section id="eligibility" className="py-12 border-b border-slate-200/80 scroll-mt-24">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-3 text-left max-w-2xl">
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-indigo-100 text-indigo-700 border border-indigo-100 tracking-wider">
+                AI Eligibility Check
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">Am I Eligible for Government Schemes?</h3>
+              <p className="text-xs sm:text-sm font-semibold text-slate-500 leading-relaxed">
+                Analyze your age, income, state, education, and profession profile to see exactly which schemes you can apply for, calculated instantly with our AI assistant.
+              </p>
+            </div>
+            <Link
+              to={user ? "/dashboard?tab=eligibility" : "/login"}
+              className="px-6 py-3 bg-[#0052cc] hover:bg-[#0047b3] text-white font-bold rounded-xl text-xs sm:text-sm shadow-md transition-colors text-center shrink-0 cursor-pointer decoration-none"
+            >
+              Verify Eligibility Now
+            </Link>
+          </div>
+        </section>
+
+        {/* About Us Section */}
+        <section id="about" className="py-12 border-b border-slate-200/80 scroll-mt-24 text-left">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-7 space-y-4">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">About PolicyGPT</h2>
+              <p className="text-xs sm:text-sm font-semibold text-slate-650 leading-relaxed">
+                PolicyGPT represents the next generation of government service accessibility. By implementing advanced semantic search engines, state-of-the-art natural language processing, and automated eligibility validations, we connect citizens directly to Central and State benefits they are entitled to.
+              </p>
+              <p className="text-xs sm:text-sm font-semibold text-slate-650 leading-relaxed">
+                Our mission is simple: to minimize administrative friction, eliminate confusion, and help every citizen discover right government schemes effortlessly.
+              </p>
+            </div>
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 p-6 rounded-3xl space-y-4">
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">Our Core Pillars</h4>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-[#0052cc] flex items-center justify-center text-xs font-black shrink-0">1</div>
+                  <div>
+                    <h5 className="text-xs font-extrabold text-slate-800">Accessibility</h5>
+                    <p className="text-[10px] text-slate-505 font-light mt-0.5">Simple, language-friendly interactions for all citizens.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-black shrink-0">2</div>
+                  <div>
+                    <h5 className="text-xs font-extrabold text-slate-800">Reliability</h5>
+                    <p className="text-[10px] text-slate-505 font-light mt-0.5">Real-time status updates sync directly with official records.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black shrink-0">3</div>
+                  <div>
+                    <h5 className="text-xs font-extrabold text-slate-800">Efficiency</h5>
+                    <p className="text-[10px] text-slate-505 font-light mt-0.5">AI matching saves hours spent on manual lookups.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Section */}
+        <section id="contact" className="py-12 scroll-mt-24 text-left">
+          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div className="text-center max-w-xl mx-auto mb-8">
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Get in Touch</h2>
+              <p className="text-xs text-slate-500 font-semibold mt-1">Have any questions or need technical support? Send us a message.</p>
+            </div>
+
+            {contactSubmitted ? (
+              <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl text-center animate-in fade-in zoom-in-95 duration-200">
+                <span className="text-emerald-700 font-extrabold text-xs block">Thank you for reaching out!</span>
+                <span className="text-emerald-600 text-[11px] font-medium block mt-1">Our support team will respond to your query shortly.</span>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Your Name</label>
+                    <input
+                      type="text"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                      placeholder="Enter full name"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:border-[#0052cc] focus:ring-2 focus:ring-blue-500/10"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <input
+                      type="email"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                      placeholder="name@example.com"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:border-[#0052cc] focus:ring-2 focus:ring-blue-500/10"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Subject</label>
+                  <input
+                    type="text"
+                    value={contactForm.subject}
+                    onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                    placeholder="Enter subject topic"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:border-[#0052cc] focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Your Message</label>
+                  <textarea
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    placeholder="Write detailed inquiry message here..."
+                    rows={4}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 text-xs focus:outline-none focus:border-[#0052cc] focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#0052cc] hover:bg-[#0047b3] text-white font-bold rounded-lg text-xs shadow-sm cursor-pointer border-none"
+                >
+                  Send Message
+                </button>
+              </form>
+            )}
+          </div>
+        </section>
+
       </main>
 
       {/* Footer Section */}
@@ -243,6 +485,67 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Details Modal */}
+      <Modal
+        isOpen={!!selectedScheme}
+        onClose={() => setSelectedScheme(null)}
+        title="Scheme Details"
+      >
+        {selectedScheme && (
+          <div className="space-y-6 text-left">
+            <div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 uppercase tracking-widest border border-blue-150">
+                {selectedScheme.category || 'General'}
+              </span>
+              <h3 className="text-xl font-extrabold text-slate-800 mt-2">{selectedScheme.title}</h3>
+              <p className="text-xs text-slate-400 font-bold mt-1">Department: {selectedScheme.department || 'Federal Government'}</p>
+            </div>
+            
+            <div className="border-t border-slate-250 pt-4 space-y-2">
+              <h4 className="text-xs font-black text-slate-450 uppercase tracking-wider">Description</h4>
+              <p className="text-sm font-semibold text-slate-600 leading-relaxed">{selectedScheme.description}</p>
+            </div>
+
+            <div className="border-t border-slate-250 pt-4 space-y-3">
+              <h4 className="text-xs font-black text-slate-450 uppercase tracking-wider">Eligibility Requirements</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-bold text-slate-650">
+                <div>
+                  <span className="block text-slate-400 text-[10px] font-black uppercase">Age Limit</span>
+                  {selectedScheme.eligibilityRules?.age ? `${selectedScheme.eligibilityRules.age.min || 0} - ${selectedScheme.eligibilityRules.age.max || 'No limit'} years` : 'Any age'}
+                </div>
+                <div>
+                  <span className="block text-slate-400 text-[10px] font-black uppercase">Annual Income Limit</span>
+                  {selectedScheme.eligibilityRules?.income?.max ? `Under ₹${selectedScheme.eligibilityRules.income.max}` : 'No income limit'}
+                </div>
+                <div>
+                  <span className="block text-slate-400 text-[10px] font-black uppercase">Education</span>
+                  {selectedScheme.eligibilityRules?.education || 'No specific education required'}
+                </div>
+                <div>
+                  <span className="block text-slate-400 text-[10px] font-black uppercase">Occupation</span>
+                  {selectedScheme.eligibilityRules?.occupation || 'Any occupation'}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-250 pt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedScheme(null)}
+                className="px-4 py-2 border border-slate-350 hover:bg-slate-50 rounded-xl text-xs font-extrabold cursor-pointer"
+              >
+                Close
+              </button>
+              <Link
+                to={user ? "/dashboard?tab=schemes" : "/login"}
+                className="px-4 py-2 bg-[#0052cc] hover:bg-[#0047b3] text-white font-extrabold rounded-xl text-xs shadow-sm transition-colors text-center cursor-pointer decoration-none"
+              >
+                Apply for Scheme
+              </Link>
+            </div>
+          </div>
+        )}
+      </Modal>
 
     </div>
   );

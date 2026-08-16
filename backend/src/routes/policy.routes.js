@@ -22,7 +22,7 @@ const policyRouter = express.Router();
  * @desc Create a new policy
  * @access Private (Gov. Official)
  */
-policyRouter.post('/', identifyUser, authorize(['Gov. Official']), validate(createPolicySchema), createPolicy);
+policyRouter.post('/', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(createPolicySchema), createPolicy);
 
 /**
  * @route GET /api/policies
@@ -41,15 +41,15 @@ policyRouter.get('/:id', getPolicyById);
 /**
  * @route PUT /api/policies/:id
  * @desc Update a policy
- * @access Private (Gov. Official)
+ * @access Private (Gov. Official, Super Admin)
  */
-policyRouter.put('/:id', identifyUser, authorize(['Gov. Official']), validate(updatePolicySchema), updatePolicy);
+policyRouter.put('/:id', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updatePolicySchema), updatePolicy);
 
 /**
  * @route PATCH /api/policies/:id/status
  * @desc Update policy status (Approve/Archive)
- * @access Private (Gov. Official)
+ * @access Private (Gov. Official, Super Admin)
  */
-policyRouter.patch('/:id/status', identifyUser, authorize(['Gov. Official']), validate(updateStatusSchema), updatePolicyStatus);
+policyRouter.patch('/:id/status', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updateStatusSchema), updatePolicyStatus);
 
 module.exports = policyRouter;

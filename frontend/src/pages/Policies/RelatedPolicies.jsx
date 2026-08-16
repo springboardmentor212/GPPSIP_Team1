@@ -49,7 +49,7 @@ const RelatedPolicies = ({ relatedList }) => {
         <h3 className="text-lg font-black text-slate-800 tracking-tight">
           Related Policies
         </h3>
-        <button 
+        <button
           onClick={() => alert("Redirecting to Research repository...")}
           className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none"
         >
@@ -61,7 +61,7 @@ const RelatedPolicies = ({ relatedList }) => {
       {/* Grid of Related Policies */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {displayList.map((item) => (
-          <div 
+          <div
             key={item.id}
             onClick={() => alert(`Opening policy: ${item.title}`)}
             className="bg-white rounded-2xl border border-slate-300 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-blue-200 transition-all duration-350 cursor-pointer flex flex-col justify-between group h-full"
