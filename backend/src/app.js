@@ -25,6 +25,8 @@ const applicationRouter = require('./routes/application.routes');
 const reportRouter = require('./routes/report.routes');
 const adminRouter = require('./routes/admin.routes');
 
+const analyticsRouter = require('./routes/analytics.routes');
+
 /* using routes */
 app.use('/api/auth', authRouter);
 app.use('/api/policies', policyRouter);
@@ -34,9 +36,9 @@ app.use('/api/schemes', eligibilityRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/compare', comparisonRouter);
 app.use('/api/applications', applicationRouter);
+app.use('/api/analytics', analyticsRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);
-
 /* health check route */
 app.get('/health', (req, res) => {
   res.status(200).json({
