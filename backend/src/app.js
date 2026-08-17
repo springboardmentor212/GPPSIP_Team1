@@ -22,6 +22,7 @@ const comparisonRouter = require('./routes/comparison.routes');
 const searchRouter = require('./routes/search.routes');
 const eligibilityRouter = require('./routes/eligibility.routes');
 const applicationRouter = require('./routes/application.routes');
+const feedbackRouter = require('./routes/feedback.routes');
 const reportRouter = require('./routes/report.routes');
 const adminRouter = require('./routes/admin.routes');
 
@@ -36,6 +37,7 @@ app.use('/api/schemes', eligibilityRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/compare', comparisonRouter);
 app.use('/api/applications', applicationRouter);
+app.use('/api/feedback', feedbackRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);
