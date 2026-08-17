@@ -27,12 +27,88 @@ const mapCategoryToDepartmentName = (category) => {
 };
 
 /**
+ * Helper to get cutoff date based on period
+ */
+const getCutoffDate = (period) => {
+    const now = new Date();
+    switch (period) {
+        case '7d':
+            now.setDate(now.getDate() - 7);
+            return now;
+        case '30d':
+            now.setDate(now.getDate() - 30);
+            return now;
+        case '6m':
+            now.setMonth(now.getMonth() - 6);
+            return now;
+        case '12m':
+            now.setFullYear(now.getFullYear() - 1);
+            return now;
+        default:
+            return null;
+    }
+};
+
+/**
+ * Helper to map Department name to scheme categories
+ */
+const getCategoriesForDepartment = (dept) => {
+    switch (dept) {
+        case 'Education':
+            return ['Scholarships', 'Student Schemes'];
+        case 'Health Care':
+            return ['Healthcare'];
+        case 'Agriculture':
+            return ['Farmer Welfare'];
+        case 'Housing & Urban':
+            return ['Housing'];
+        case 'MSME & Commerce':
+            return ['Business Support'];
+        case 'Labour & Employment':
+            return ['Employment Programs'];
+        case 'Social Welfare':
+            return ['Women Empowerment', 'Senior Citizen Welfare', 'Social Security'];
+        default:
+            return [];
+    }
+};
+
+/**
  * @desc Get Key Performance Indicators (KPIs)
  * @route GET /api/analytics/kpis
  * @access Private (Officials only)
  */
 const getKPIs = async (req, res, next) => {
     try {
+        const { period, department } = req.query;
+        const cutoffDate = getCutoffDate(period);
+
+        const policyQuery = {};
+        const schemeQuery = {};
+        const appQuery = {};
+        const approvedAppQuery = { status: 'Approved' };
+        const userQuery = { role: 'Citizen' };
+
+        if (cutoffDate) {
+            policyQuery.createdAt = { $gte: cutoffDate };
+            schemeQuery.createdAt = { $gte: cutoffDate };
+            appQuery.createdAt = { $gte: cutoffDate };
+            approvedAppQuery.createdAt = { $gte: cutoffDate };
+            userQuery.createdAt = { $gte: cutoffDate };
+        }
+
+        if (department) {
+            policyQuery.department = department;
+            const categories = getCategoriesForDepartment(department);
+            schemeQuery.category = { $in: categories };
+
+            // Find schemes under these categories
+            const matchingSchemes = await Scheme.find({ category: { $in: categories } }).select('_id');
+            const schemeIds = matchingSchemes.map(s => s._id);
+            appQuery.scheme = { $in: schemeIds };
+            approvedAppQuery.scheme = { $in: schemeIds };
+        }
+
         const [
             totalPolicies,
             totalSchemes,
@@ -40,11 +116,11 @@ const getKPIs = async (req, res, next) => {
             approvedApps,
             activeUsers
         ] = await Promise.all([
-            Policy.countDocuments(),
-            Scheme.countDocuments(),
-            Application.countDocuments(),
-            Application.countDocuments({ status: 'Approved' }),
-            User.countDocuments({ role: 'Citizen' })
+            Policy.countDocuments(policyQuery),
+            Scheme.countDocuments(schemeQuery),
+            Application.countDocuments(appQuery),
+            Application.countDocuments(approvedAppQuery),
+            User.countDocuments(userQuery)
         ]);
 
         const approvalRate = totalApplications > 0 
@@ -52,14 +128,23 @@ const getKPIs = async (req, res, next) => {
             : 0;
 
         // Calculate average processing duration for resolved applications
+        const processingMatch = {
+            status: { $in: ['Approved', 'Rejected'] },
+            reviewedAt: { $exists: true, $ne: null },
+            submittedAt: { $exists: true, $ne: null }
+        };
+        if (cutoffDate) {
+            processingMatch.createdAt = { $gte: cutoffDate };
+        }
+        if (department) {
+            const categories = getCategoriesForDepartment(department);
+            const matchingSchemes = await Scheme.find({ category: { $in: categories } }).select('_id');
+            const schemeIds = matchingSchemes.map(s => s._id);
+            processingMatch.scheme = { $in: schemeIds };
+        }
+
         const processingStats = await Application.aggregate([
-            {
-                $match: {
-                    status: { $in: ['Approved', 'Rejected'] },
-                    reviewedAt: { $exists: true, $ne: null },
-                    submittedAt: { $exists: true, $ne: null }
-                }
-            },
+            { $match: processingMatch },
             {
                 $project: {
                     durationDays: {
@@ -83,7 +168,17 @@ const getKPIs = async (req, res, next) => {
             : 0;
 
         // Citizen Reach: Count of unique applicants who submitted applications
-        const uniqueApplicants = await Application.distinct('applicant');
+        const reachQuery = {};
+        if (cutoffDate) {
+            reachQuery.createdAt = { $gte: cutoffDate };
+        }
+        if (department) {
+            const categories = getCategoriesForDepartment(department);
+            const matchingSchemes = await Scheme.find({ category: { $in: categories } }).select('_id');
+            const schemeIds = matchingSchemes.map(s => s._id);
+            reachQuery.scheme = { $in: schemeIds };
+        }
+        const uniqueApplicants = await Application.distinct('applicant', reachQuery);
         const citizenReach = uniqueApplicants.length;
 
         // Estimated Monthly Searches: derived scale from user count
@@ -114,7 +209,30 @@ const getKPIs = async (req, res, next) => {
  */
 const getTrends = async (req, res, next) => {
     try {
+        const { period, department, category } = req.query;
+        const cutoffDate = getCutoffDate(period);
+
+        const policyMatch = {};
+        const schemeMatch = {};
+
+        if (cutoffDate) {
+            policyMatch.createdAt = { $gte: cutoffDate };
+            schemeMatch.createdAt = { $gte: cutoffDate };
+        }
+
+        if (department) {
+            policyMatch.department = department;
+            const categories = getCategoriesForDepartment(department);
+            schemeMatch.category = { $in: categories };
+        }
+
+        if (category) {
+            policyMatch.category = category;
+            schemeMatch.category = category;
+        }
+
         const policyTrends = await Policy.aggregate([
+            { $match: policyMatch },
             {
                 $group: {
                     _id: {
@@ -128,6 +246,7 @@ const getTrends = async (req, res, next) => {
         ]);
 
         const schemeTrends = await Scheme.aggregate([
+            { $match: schemeMatch },
             {
                 $group: {
                     _id: {
@@ -211,8 +330,22 @@ const getTrends = async (req, res, next) => {
  */
 const getDepartmentAnalytics = async (req, res, next) => {
     try {
+        const { period, department, sortBy } = req.query;
+        const cutoffDate = getCutoffDate(period);
+
+        const policyMatch = {};
+        const schemeMatch = {};
+        const appMatch = {};
+
+        if (cutoffDate) {
+            policyMatch.createdAt = { $gte: cutoffDate };
+            schemeMatch.createdAt = { $gte: cutoffDate };
+            appMatch.createdAt = { $gte: cutoffDate };
+        }
+
         // Aggregate policies by department string
         const policyStats = await Policy.aggregate([
+            { $match: policyMatch },
             {
                 $group: {
                     _id: '$department',
@@ -223,6 +356,7 @@ const getDepartmentAnalytics = async (req, res, next) => {
 
         // Aggregate schemes by category
         const schemeStats = await Scheme.aggregate([
+            { $match: schemeMatch },
             {
                 $group: {
                     _id: '$category',
@@ -233,6 +367,7 @@ const getDepartmentAnalytics = async (req, res, next) => {
 
         // Aggregate applications by scheme category
         const applicationStats = await Application.aggregate([
+            { $match: appMatch },
             {
                 $lookup: {
                     from: 'schemes',
@@ -324,7 +459,7 @@ const getDepartmentAnalytics = async (req, res, next) => {
                     departments[deptKey].uniqueCitizens.add(uid.toString());
                 });
             }
-            // Temporarily store total & approved counts for approval rate calculation
+            // Store total & approved counts for approval rate calculation
             const total = item.totalApplications;
             const approved = item.approvedApplications;
             departments[deptKey].approvalRateVal = total > 0 
@@ -333,7 +468,7 @@ const getDepartmentAnalytics = async (req, res, next) => {
         });
 
         // Format into table list
-        const results = Object.values(departments).map((d, index) => {
+        let results = Object.values(departments).map((d, index) => {
             const avgDuration = d.approvalCount > 0 
                 ? parseFloat((d.approvalSum / d.approvalCount).toFixed(1)) 
                 : 0;
@@ -357,8 +492,22 @@ const getDepartmentAnalytics = async (req, res, next) => {
             };
         });
 
-        // Sort by policy + scheme volume descending
-        results.sort((a, b) => (b.policies + b.schemes) - (a.policies + a.schemes));
+        // Filter by specific department if requested
+        if (department) {
+            results = results.filter(r => r.name.toLowerCase() === department.toLowerCase());
+        }
+
+        // Sort dynamically based on sortBy parameter
+        if (sortBy === 'approvalRate') {
+            results.sort((a, b) => b.approval - a.approval);
+        } else if (sortBy === 'processingTime') {
+            results.sort((a, b) => a.avgProcessDays - b.avgProcessDays);
+        } else {
+            // Default: 'volume'
+            results.sort((a, b) => (b.policies + b.schemes) - (a.policies + a.schemes));
+        }
+
+        // Re-assign ranks based on final sorted order
         results.forEach((r, idx) => { r.rank = idx + 1; });
 
         res.status(200).json({
