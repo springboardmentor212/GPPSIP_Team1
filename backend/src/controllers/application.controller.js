@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const Application = require('../models/application.model');
 const Scheme = require('../models/scheme.model');
+const Notification = require('../models/notification.model');
 
 /**
  * @desc Create a new scheme application
@@ -177,8 +178,32 @@ const approveApplication = async (req, res, next) => {
 
         await application.save();
 
-        // Log notification to console (as notification system is pending in backend)
-        console.log(`[NOTIFICATION STUB] Application ${application.applicationId} APPROVED for user ${application.applicant}.`);
+        // Create database notification
+        try {
+            const scheme = await Scheme.findById(application.scheme);
+            const schemeTitle = scheme ? scheme.title : 'Scheme';
+            const schemeDept = scheme ? (scheme.department || scheme.category) : 'Gov. Department';
+            const schemeCat = scheme ? scheme.category : 'Department';
+
+            await Notification.create({
+                recipient: application.applicant,
+                title: 'Eligibility Status Approved',
+                subtitle: `Your application for ${schemeTitle} has been successfully approved.`,
+                description: `We are pleased to inform you that your application (ID: ${application.applicationId}) for the scheme "${schemeTitle}" has been reviewed and approved.`,
+                category: 'Application Alert',
+                priority: 'HIGH',
+                unread: true,
+                tags: ['Applications', 'Approved'],
+                aiInsight: 'Your application is fully approved. You are eligible to receive maximum benefit Aid.',
+                source: schemeDept,
+                department: schemeCat,
+                iconType: 'check',
+                associatedResourceId: application._id,
+                associatedResourceType: 'Application'
+            });
+        } catch (notifErr) {
+            console.error('Failed to create approval notification:', notifErr.message);
+        }
 
         res.status(200).json({
             success: true,
@@ -221,8 +246,32 @@ const rejectApplication = async (req, res, next) => {
 
         await application.save();
 
-        // Log notification to console
-        console.log(`[NOTIFICATION STUB] Application ${application.applicationId} REJECTED for user ${application.applicant}. Reason: ${comments}`);
+        // Create database notification
+        try {
+            const scheme = await Scheme.findById(application.scheme);
+            const schemeTitle = scheme ? scheme.title : 'Scheme';
+            const schemeDept = scheme ? (scheme.department || scheme.category) : 'Gov. Department';
+            const schemeCat = scheme ? scheme.category : 'Department';
+
+            await Notification.create({
+                recipient: application.applicant,
+                title: 'Eligibility Status Rejected',
+                subtitle: `Your application for ${schemeTitle} was rejected.`,
+                description: `We regret to inform you that your application (ID: ${application.applicationId}) for the scheme "${schemeTitle}" has been rejected. Reason: ${comments || 'No details provided.'}`,
+                category: 'Application Alert',
+                priority: 'NORMAL',
+                unread: true,
+                tags: ['Applications', 'Rejected'],
+                aiInsight: 'We recommend reviewing the rejection reason, updating your documentation, and contacting support if needed.',
+                source: schemeDept,
+                department: schemeCat,
+                iconType: 'cog',
+                associatedResourceId: application._id,
+                associatedResourceType: 'Application'
+            });
+        } catch (notifErr) {
+            console.error('Failed to create rejection notification:', notifErr.message);
+        }
 
         res.status(200).json({
             success: true,

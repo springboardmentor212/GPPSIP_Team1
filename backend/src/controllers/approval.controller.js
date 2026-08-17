@@ -1,4 +1,6 @@
 const Policy = require('../models/policy.model');
+const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 
 /**
  * @desc Submit a policy for approval (Draft → Pending)
@@ -28,6 +30,48 @@ const submitForApproval = async (req, res, next) => {
         });
 
         await policy.save();
+
+        // Create database notifications
+        try {
+            // Notify policy creator
+            await Notification.create({
+                recipient: policy.creator,
+                title: 'Policy Submitted for Approval',
+                subtitle: `Your policy '${policy.title}' has been submitted.`,
+                description: `The policy "${policy.title}" has been successfully submitted for approval and is currently pending review.`,
+                category: 'Policy Update',
+                priority: 'NORMAL',
+                unread: true,
+                tags: ['Policies', 'Pending'],
+                source: 'System',
+                department: policy.department || 'Policy Department',
+                iconType: 'at',
+                associatedResourceId: policy._id,
+                associatedResourceType: 'Policy'
+            });
+
+            // Notify any Admin users
+            const admins = await User.find({ role: 'Admin' });
+            for (const admin of admins) {
+                await Notification.create({
+                    recipient: admin._id,
+                    title: 'New Policy Pending Review',
+                    subtitle: `Policy '${policy.title}' requires review.`,
+                    description: `A new policy titled "${policy.title}" has been submitted by a Government Official and is pending your review and approval.`,
+                    category: 'Policy Update',
+                    priority: 'HIGH',
+                    unread: true,
+                    tags: ['Policies', 'Review Required'],
+                    source: 'System',
+                    department: policy.department || 'Policy Department',
+                    iconType: 'landmark',
+                    associatedResourceId: policy._id,
+                    associatedResourceType: 'Policy'
+                });
+            }
+        } catch (notifErr) {
+            console.error('Failed to create policy submission notifications:', notifErr.message);
+        }
 
         res.status(200).json({
             success: true,
@@ -68,6 +112,27 @@ const approvePolicy = async (req, res, next) => {
         });
 
         await policy.save();
+
+        // Create database notification
+        try {
+            await Notification.create({
+                recipient: policy.creator,
+                title: 'Policy Approved',
+                subtitle: `Your policy '${policy.title}' has been approved.`,
+                description: `We are pleased to inform you that your policy "${policy.title}" has been reviewed and approved by the administrator. It is now live in the system.`,
+                category: 'Policy Update',
+                priority: 'HIGH',
+                unread: true,
+                tags: ['Policies', 'Approved'],
+                source: 'System Admin',
+                department: policy.department || 'Policy Department',
+                iconType: 'check',
+                associatedResourceId: policy._id,
+                associatedResourceType: 'Policy'
+            });
+        } catch (notifErr) {
+            console.error('Failed to create policy approval notification:', notifErr.message);
+        }
 
         res.status(200).json({
             success: true,
@@ -115,6 +180,27 @@ const rejectPolicy = async (req, res, next) => {
 
         await policy.save();
 
+        // Create database notification
+        try {
+            await Notification.create({
+                recipient: policy.creator,
+                title: 'Policy Rejected',
+                subtitle: `Your policy '${policy.title}' was rejected.`,
+                description: `We regret to inform you that your policy "${policy.title}" has been rejected. Reason: ${req.body.comments || 'No details provided.'}`,
+                category: 'Policy Update',
+                priority: 'HIGH',
+                unread: true,
+                tags: ['Policies', 'Rejected'],
+                source: 'System Admin',
+                department: policy.department || 'Policy Department',
+                iconType: 'cog',
+                associatedResourceId: policy._id,
+                associatedResourceType: 'Policy'
+            });
+        } catch (notifErr) {
+            console.error('Failed to create policy rejection notification:', notifErr.message);
+        }
+
         res.status(200).json({
             success: true,
             message: 'Policy rejected',
@@ -152,6 +238,27 @@ const archivePolicy = async (req, res, next) => {
         });
 
         await policy.save();
+
+        // Create database notification
+        try {
+            await Notification.create({
+                recipient: policy.creator,
+                title: 'Policy Archived',
+                subtitle: `Your policy '${policy.title}' has been archived.`,
+                description: `The policy "${policy.title}" has been archived and is no longer active in the public listing. Reason: ${req.body.comments || 'Policy archived by administrator.'}`,
+                category: 'Policy Update',
+                priority: 'NORMAL',
+                unread: true,
+                tags: ['Policies', 'Archived'],
+                source: 'System Admin',
+                department: policy.department || 'Policy Department',
+                iconType: 'cog',
+                associatedResourceId: policy._id,
+                associatedResourceType: 'Policy'
+            });
+        } catch (notifErr) {
+            console.error('Failed to create policy archive notification:', notifErr.message);
+        }
 
         res.status(200).json({
             success: true,
