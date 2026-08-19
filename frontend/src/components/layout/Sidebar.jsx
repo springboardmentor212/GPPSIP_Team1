@@ -44,7 +44,7 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
       { id: 'search', label: 'Policy Search', icon: FaSearch },
       { id: 'schemes', label: 'Government Schemes', icon: FaBook },
       { id: 'eligibility', label: 'Eligibility Checker', icon: FaUserCheck },
-      ...(user && (user.role === 'Gov. Official' || user.role === 'Admin')
+      ...(user && (user.role === 'Gov. Official' || user.role === 'Super Admin')
         ? [
           { id: 'reports', label: 'Analytics', icon: FaChartBar },
           { id: 'applications', label: 'Approvals Queue', icon: FaClipboardList }

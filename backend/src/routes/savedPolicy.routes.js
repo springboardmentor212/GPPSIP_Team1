@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const savedPolicyController = require('../controllers/savedPolicy.controller');
-const { protect } = require('../middlewares/auth.middleware');
+const identifyUser = require('../middlewares/auth.middleware');
 
-router.use(protect);
+router.use(identifyUser);
 
 router.post('/', savedPolicyController.savePolicy);
 router.get('/', savedPolicyController.getSavedPolicies);
