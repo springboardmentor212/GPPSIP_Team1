@@ -5,6 +5,7 @@ import PolicyCard from '../../components/cards/PolicyCard';
 import EmptyPolicyCard from '../../components/cards/EmptyPolicyCard';
 import Pagination from '../../components/common/Pagination';
 import { searchAll } from '../../services/search.service';
+import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
 
 const PolicySearchPage = ({ onReadMore }) => {
   // State for database policies
@@ -56,9 +57,21 @@ const PolicySearchPage = ({ onReadMore }) => {
     }
   };
 
+  const fetchSavedStatus = async () => {
+    try {
+      const data = await getSavedPolicies();
+      if (data.success) {
+        setBookmarkedIds(data.policies.map(p => p._id));
+      }
+    } catch (err) {
+      console.error("Failed to fetch saved policies", err);
+    }
+  };
+
   // Re-fetch when search/filters change
   useEffect(() => {
     fetchPoliciesData();
+    fetchSavedStatus();
   }, [appliedSearchQuery, filters.category, filters.department, filters.status, filters.state, filters.ministry]);
 
   const triggerToast = (msg) => {
@@ -82,17 +95,22 @@ const PolicySearchPage = ({ onReadMore }) => {
     setCurrentPage(1);
   };
 
-  const handleBookmarkToggle = (policyId) => {
-    setBookmarkedIds((prev) => {
-      const isBookmarked = prev.includes(policyId);
+  const handleBookmarkToggle = async (policyId) => {
+    const isBookmarked = bookmarkedIds.includes(policyId);
+    try {
       if (isBookmarked) {
-        triggerToast(`Removed policy ${policyId} from bookmarks`);
-        return prev.filter(id => id !== policyId);
+        await removeSavedPolicy(policyId);
+        setBookmarkedIds(prev => prev.filter(id => id !== policyId));
+        triggerToast(`Removed policy from bookmarks`);
       } else {
-        triggerToast(`Saved policy ${policyId} to bookmarks`);
-        return [...prev, policyId];
+        await savePolicy(policyId);
+        setBookmarkedIds(prev => [...prev, policyId]);
+        triggerToast(`Saved policy to bookmarks`);
       }
-    });
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+      triggerToast("Failed to update bookmark status");
+    }
   };
 
   const handleShare = (policyId, title) => {
