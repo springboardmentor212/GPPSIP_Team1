@@ -23,23 +23,23 @@ approvalRouter.patch('/:id/submit', identifyUser, authorize(['Gov. Official']), 
 /**
  * @route PATCH /api/policies/:id/approve
  * @desc Approve a policy (Pending → Approved)
- * @access Private (Admin)
+ * @access Private (Super Admin)
  */
-approvalRouter.patch('/:id/approve', identifyUser, authorize(['Admin']), validate(approvalActionSchema), approvePolicy);
+approvalRouter.patch('/:id/approve', identifyUser, authorize(['Super Admin']), validate(approvalActionSchema), approvePolicy);
 
 /**
  * @route PATCH /api/policies/:id/reject
  * @desc Reject a policy (Pending → Rejected)
- * @access Private (Admin)
+ * @access Private (Super Admin)
  */
-approvalRouter.patch('/:id/reject', identifyUser, authorize(['Admin']), validate(rejectPolicySchema), rejectPolicy);
+approvalRouter.patch('/:id/reject', identifyUser, authorize(['Super Admin']), validate(rejectPolicySchema), rejectPolicy);
 
 /**
  * @route PATCH /api/policies/:id/archive
  * @desc Archive a policy (Approved → Archived)
- * @access Private (Admin, Gov. Official)
+ * @access Private (Super Admin, Gov. Official)
  */
-approvalRouter.patch('/:id/archive', identifyUser, authorize(['Admin', 'Gov. Official']), validate(approvalActionSchema), archivePolicy);
+approvalRouter.patch('/:id/archive', identifyUser, authorize(['Super Admin', 'Gov. Official']), validate(approvalActionSchema), archivePolicy);
 
 /**
  * @route GET /api/policies/:id/approval-history

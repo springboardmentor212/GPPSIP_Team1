@@ -50,8 +50,8 @@ const submitForApproval = async (req, res, next) => {
                 associatedResourceType: 'Policy'
             });
 
-            // Notify any Admin users
-            const admins = await User.find({ role: 'Admin' });
+            // Notify any Super Admin users
+            const admins = await User.find({ role: 'Super Admin' });
             for (const admin of admins) {
                 await Notification.create({
                     recipient: admin._id,
