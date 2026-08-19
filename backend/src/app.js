@@ -22,16 +22,23 @@ const comparisonRouter = require('./routes/comparison.routes');
 const searchRouter = require('./routes/search.routes');
 const eligibilityRouter = require('./routes/eligibility.routes');
 const applicationRouter = require('./routes/application.routes');
+const adminRouter = require('./routes/admin.routes');
+const savedPolicyRouter = require('./routes/savedPolicy.routes');
 const notificationRouter = require('./routes/notification.routes');
 const feedbackRouter = require('./routes/feedback.routes');
 const reportRouter = require('./routes/report.routes');
-const adminRouter = require('./routes/admin.routes');
-const savedPolicyRouter = require('./routes/savedPolicy.routes');
+const assistantRouter = require('./routes/assistant.routes');
+const profileRouter = require('./routes/profile.routes');
+const passwordResetRouter = require('./routes/passwordReset.routes');
+const circularRouter = require('./routes/circular.routes');
+const chatRouter = require('./routes/chat.routes');
 
 const analyticsRouter = require('./routes/analytics.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
+app.use('/api/auth', passwordResetRouter);
+app.use('/api/profile', profileRouter);
 app.use('/api/policies', policyRouter);
 app.use('/api/policies', approvalRouter);
 app.use('/api/schemes', schemeRouter);
@@ -45,6 +52,10 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/saved-policies', savedPolicyRouter);
+app.use('/api/assistant', assistantRouter);
+app.use('/api/circulars', circularRouter);
+app.use('/api/chat', chatRouter);
+
 /* health check route */
 app.get('/health', (req, res) => {
   res.status(200).json({
