@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middlewares/auth.middleware');
+const identifyUser = require('../middlewares/auth.middleware');
 
-router.get('/', protect, (req, res) => {
+router.get('/', identifyUser, (req, res) => {
     res.json({
         success: true,
         profile: {
@@ -13,7 +13,7 @@ router.get('/', protect, (req, res) => {
     });
 });
 
-router.put('/', protect, (req, res) => {
+router.put('/', identifyUser, (req, res) => {
     res.json({
         success: true,
         message: "Profile updated successfully",

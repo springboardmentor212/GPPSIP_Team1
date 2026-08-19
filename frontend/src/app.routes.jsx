@@ -7,6 +7,8 @@ import OrganizationVerification from "./features/auth/pages/OrganizationVerifica
 import Dashboard from "./pages/Dashboard/Dashboard";
 import StandalonePolicyPage from "./pages/Policies/StandalonePolicyPage";
 import StandaloneSchemePage from "./pages/Schemes/StandaloneSchemePage";
+import ForgotPassword from "./features/auth/pages/ForgotPassword";
+import ResetPassword from "./features/auth/pages/ResetPassword";
 import useAuth from "./hooks/useAuth";
 
 const GuestRoute = ({ children }) => {
@@ -57,6 +59,22 @@ const router = createBrowserRouter([
     {
         path: "/scheme/:id",
         element: <StandaloneSchemePage />,
+    },
+    {
+        path: "/forgot-password",
+        element: (
+            <GuestRoute>
+                <ForgotPassword />
+            </GuestRoute>
+        ),
+    },
+    {
+        path: "/reset-password/:token",
+        element: (
+            <GuestRoute>
+                <ResetPassword />
+            </GuestRoute>
+        ),
     }
 ]);
 

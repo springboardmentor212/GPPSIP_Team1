@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middlewares/auth.middleware');
+const identifyUser = require('../middlewares/auth.middleware');
 
 // In-memory mock for AI Assistant
-router.post('/ask', protect, (req, res) => {
+router.post('/ask', identifyUser, (req, res) => {
     const { question } = req.body;
     res.json({
         success: true,
@@ -15,7 +15,7 @@ router.post('/ask', protect, (req, res) => {
     });
 });
 
-router.get('/suggestions', protect, (req, res) => {
+router.get('/suggestions', identifyUser, (req, res) => {
     res.json({
         success: true,
         suggestions: [
