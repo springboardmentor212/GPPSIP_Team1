@@ -32,6 +32,10 @@ const profileRouter = require('./routes/profile.routes');
 const passwordResetRouter = require('./routes/passwordReset.routes');
 const circularRouter = require('./routes/circular.routes');
 const chatRouter = require('./routes/chat.routes');
+const documentRouter = require('./routes/document.routes');
+
+/* using routes */
+app.use('/api/documents', documentRouter);
 
 const analyticsRouter = require('./routes/analytics.routes');
 

@@ -14,9 +14,16 @@ const policySchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Draft', 'Pending', 'Approved', 'Rejected', 'Archived'],
+    enum: ['Draft', 'Pending Approval', 'Active', 'Under Review', 'Archived'],
     default: 'Draft'
   },
+  version: { type: Number, default: 1 },
+  previousVersions: [{
+    version: Number,
+    content: String,
+    updatedAt: Date,
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }],
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

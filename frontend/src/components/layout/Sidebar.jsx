@@ -54,6 +54,9 @@ const Sidebar = ({ activeTab = 'dashboard', setActiveTab, handleLogout, user }) 
       { id: 'feedback', label: 'Feedback & Support', icon: FaHeadset },
       { id: 'notifications', label: 'Notifications', icon: FaBell },
       { id: 'ai', label: 'AI Assistant', icon: FaRobot },
+      { id: 'chat-history', label: 'Chat History', icon: FaThLarge },
+      { id: 'circulars', label: 'Circulars', icon: FaBook },
+      { id: 'documents', label: 'Upload Documents', icon: FaThLarge },
     ];
   };
 

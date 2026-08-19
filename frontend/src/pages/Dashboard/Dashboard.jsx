@@ -35,8 +35,12 @@ import GovernmentSchemesPage from '../Schemes/GovernmentSchemesPage';
 import EligibilityPage from '../Eligibility/EligibilityPage';
 import NotificationsPage from '../Notifications/NotificationsPage';
 import ApplicationsPage from '../Applications/ApplicationsPage';
+import AnalyticsPage from '../Analytics/AnalyticsPage';
 import ProfilePage from '../Profile/ProfilePage';
 import SettingsPage from '../Settings/SettingsPage';
+import CircularsPage from '../Circulars/CircularsPage';
+import DocumentUploadPage from '../Documents/DocumentUploadPage';
+import ChatHistoryPage from '../ChatHistory/ChatHistoryPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
 import ReportsPage from '../Reports/ReportsPage';
 import FeedbackPage from '../Feedback/FeedbackPage';
@@ -873,6 +877,15 @@ const Dashboard = () => {
             dbStatus={dbStatus}
           />
         );
+
+      case 'circulars':
+        return <CircularsPage />;
+
+      case 'documents':
+        return <DocumentUploadPage />;
+
+      case 'chat-history':
+        return <ChatHistoryPage />;
 
       default:
         return null;

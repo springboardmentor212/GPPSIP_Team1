@@ -73,6 +73,17 @@ const updatePolicy = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Only policies in Draft status can be updated' });
         }
 
+        // Save previous version if content or description changed
+        if (req.body.description && req.body.description !== policy.description) {
+            policy.previousVersions.push({
+                version: policy.version,
+                content: policy.description,
+                updatedAt: new Date(),
+                updatedBy: req.user._id
+            });
+            policy.version += 1;
+        }
+
         Object.assign(policy, req.body);
         await policy.save();
 

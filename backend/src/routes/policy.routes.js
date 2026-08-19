@@ -45,6 +45,15 @@ policyRouter.get('/:id', getPolicyById);
  */
 policyRouter.put('/:id', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updatePolicySchema), updatePolicy);
 
+policyRouter.get('/:id/versions', async (req, res) => {
+    try {
+        const policy = await require('../models/policy.model').findById(req.params.id);
+        res.json({ success: true, versions: policy.previousVersions || [] });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 /**
  * @route PATCH /api/policies/:id/status
  * @desc Update policy status (Approve/Archive)
