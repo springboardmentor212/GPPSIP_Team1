@@ -41,7 +41,7 @@ const TopNavbar = ({ user, activeTab = 'dashboard', setSearchQuery }) => {
               {user?.fullName || "Admin User"}
             </span>
             <span className="text-[8px] font-black text-[#0052cc] uppercase tracking-wider leading-none mt-0.5">
-              {user?.role === 'admin' ? 'SYSTEM ADMINISTRATOR' : (user?.role || 'SYSTEM ADMINISTRATOR')}
+              {user?.role === 'Super Admin' ? 'SYSTEM ADMINISTRATOR' : (user?.role || 'SYSTEM ADMINISTRATOR')}
             </span>
           </div>
           

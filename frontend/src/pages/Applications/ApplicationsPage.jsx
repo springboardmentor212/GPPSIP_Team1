@@ -66,7 +66,7 @@ const ApprovalsDashboard = () => {
   const itemsPerPage = 6;
 
   const isCitizen = user && user.role === 'Citizen';
-  const isOfficial = user && (user.role === 'Gov. Official' || user.role === 'Admin');
+  const isOfficial = user && (user.role === 'Gov. Official' || user.role === 'Super Admin');
 
   // Fetch items based on role
   const fetchDashboardData = async () => {
@@ -603,7 +603,7 @@ const ApprovalsDashboard = () => {
                                 )}
                                 
                                 {/* Policy Approval Action */}
-                                {item.type === 'Policy' && item.status === 'Pending' && user?.role === 'Admin' && (
+                                {item.type === 'Policy' && item.status === 'Pending' && user?.role === 'Super Admin' && (
                                   <>
                                     <button
                                       onClick={() => handleAction('approve', item.type, item.id)}

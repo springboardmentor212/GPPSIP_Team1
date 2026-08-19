@@ -196,8 +196,7 @@ const Dashboard = () => {
 
             appCount = apps.length;
           } else if (
-            user.role === 'Gov. Official' ||
-            user.role === 'Admin'
+            user.role === 'Gov. Official'
           ) {
             const appRes = await getPendingApplications(
               'Pending'
