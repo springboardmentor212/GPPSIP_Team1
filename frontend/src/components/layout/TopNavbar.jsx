@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBell, FaSearch, FaRegEnvelope } from 'react-icons/fa';
+import { getNotifications } from '../../services/notification.service';
+import { useNavigate } from 'react-router-dom';
 
 const TopNavbar = ({ user, activeTab = 'dashboard', setSearchQuery }) => {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      getNotifications().then(res => {
+        if (res.success && Array.isArray(res.notifications)) {
+          setUnreadCount(res.notifications.filter(n => n.unread).length);
+        }
+      }).catch(err => console.error(err));
+    }
+  }, [user]);
+
   return (
     <header className="h-20 bg-white border-b border-slate-300 sticky top-0 z-40 px-6 sm:px-8 flex items-center justify-between gap-4 shrink-0">
       
@@ -27,9 +42,16 @@ const TopNavbar = ({ user, activeTab = 'dashboard', setSearchQuery }) => {
         </button>
 
         {/* Notifications Icon Button */}
-        <button className="relative w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer border-none bg-transparent">
+        <button 
+          onClick={() => navigate('/notifications')}
+          className="relative w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer border-none bg-transparent"
+        >
           <FaBell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 bg-red-500 rounded-full flex items-center justify-center text-[8px] font-bold text-white shadow-sm border border-white">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         <div className="h-6 w-px bg-slate-300"></div>
