@@ -5,11 +5,13 @@ import { getSchemeById } from '../../services/scheme.service';
 import { applyForScheme } from '../../services/application.service';
 import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import useAuth from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 
 const StandaloneSchemePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToast } = useToast();
   const [scheme, setScheme] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,11 +38,11 @@ const StandaloneSchemePage = () => {
 
   const handleApply = (schemeItem) => {
     if (!user) {
-      alert("Please log in to apply for schemes.");
+      addToast("Please log in to apply for schemes.", 'error');
       return;
     }
     if (user.role !== 'Citizen') {
-      alert(`Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`);
+      addToast(`Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`, 'error');
       return;
     }
     setSelectedSchemeToApply(schemeItem);
@@ -50,7 +52,7 @@ const StandaloneSchemePage = () => {
   const handleApplySuccess = (application) => {
     setApplyModalOpen(false);
     setSelectedSchemeToApply(null);
-    alert(`Successfully applied! Application ID: ${application.applicationId}`);
+    addToast(`Successfully applied! Application ID: ${application.applicationId}`, 'success');
     navigate('/dashboard?tab=applications');
   };
 

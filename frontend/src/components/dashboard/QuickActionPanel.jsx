@@ -5,9 +5,9 @@ import {
   FaRegBookmark, 
   FaExchangeAlt, 
   FaShareAlt, 
-  FaPrint 
 } from 'react-icons/fa';
 import policyPreviewImg from '../../assets/policy_preview.png';
+import { useToast } from '../../hooks/useToast';
 
 const QuickActionPanel = ({ 
   policyId = "POL-2024-DPSF-001",
@@ -18,6 +18,7 @@ const QuickActionPanel = ({
   onShare, 
   onPrint 
 }) => {
+  const { addToast } = useToast();
   const tags = ["#PrivacyRights", "#DataIntegrity", "#DM&Security", "#CyberLaw", "#Compliance"];
 
   return (
@@ -33,7 +34,7 @@ const QuickActionPanel = ({
         <div className="space-y-3">
           {/* Download PDF Button */}
           <button 
-            onClick={onDownloadPDF || (() => alert("Downloading PDF..."))}
+            onClick={onDownloadPDF || (() => addToast("Downloading PDF...", 'info'))}
             className="w-full h-11 bg-[#0052cc] hover:bg-[#0047b3] text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
           >
             <FaDownload className="w-3.5 h-3.5" />
@@ -42,7 +43,7 @@ const QuickActionPanel = ({
 
           {/* Bookmark Button */}
           <button 
-            onClick={onBookmarkToggle || (() => alert("Toggling bookmark..."))}
+            onClick={onBookmarkToggle || (() => addToast("Toggling bookmark...", 'info'))}
             className={`w-full h-11 border rounded-xl font-bold text-xs sm:text-sm transition-colors cursor-pointer flex items-center justify-center gap-2 ${
               isBookmarked 
                 ? 'border-blue-200 bg-blue-50 text-[#0052cc] hover:bg-blue-100' 
@@ -57,7 +58,7 @@ const QuickActionPanel = ({
         {/* Small actions list with dividers */}
         <div className="pt-2 divide-y divide-slate-100 text-xs sm:text-sm font-bold text-slate-600">
           <button 
-            onClick={onCompare || (() => alert("Comparing versions..."))}
+            onClick={onCompare || (() => addToast("Comparing versions...", 'info'))}
             className="w-full py-3.5 flex items-center gap-3 hover:text-[#0052cc] transition-colors bg-transparent border-none cursor-pointer text-left"
           >
             <FaExchangeAlt className="w-3.5 h-3.5 text-slate-400" />
@@ -65,7 +66,7 @@ const QuickActionPanel = ({
           </button>
           
           <button 
-            onClick={onShare || (() => alert("Sharing policy..."))}
+            onClick={onShare || (() => addToast("Sharing policy...", 'info'))}
             className="w-full py-3.5 flex items-center gap-3 hover:text-[#0052cc] transition-colors bg-transparent border-none cursor-pointer text-left"
           >
             <FaShareAlt className="w-3.5 h-3.5 text-slate-400" />
@@ -73,7 +74,7 @@ const QuickActionPanel = ({
           </button>
           
           <button 
-            onClick={onPrint || (() => alert("Printing summary..."))}
+            onClick={onPrint || (() => addToast("Printing summary...", 'info'))}
             className="w-full py-3.5 flex items-center gap-3 hover:text-[#0052cc] transition-colors bg-transparent border-none cursor-pointer text-left"
           >
             <FaPrint className="w-3.5 h-3.5 text-slate-400" />

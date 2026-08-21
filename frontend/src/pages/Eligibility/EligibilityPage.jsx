@@ -7,9 +7,11 @@ import SchemeCard from '../../components/cards/SchemeCard';
 import { checkSchemeEligibility } from '../../services/eligibility.service';
 import { getSchemes } from '../../services/scheme.service';
 import { FaChevronLeft, FaSearch, FaCheckCircle, FaTimesCircle, FaFileAlt } from 'react-icons/fa';
+import { useToast } from '../../hooks/useToast';
 
 const EligibilityPage = () => {
   const [step, setStep] = useState(1);
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     age: '',
     gender: '',
@@ -140,11 +142,11 @@ const EligibilityPage = () => {
         });
         setStep(2);
       } else {
-        alert(response.message || "Failed to calculate eligibility.");
+        addToast(response.message || "Failed to calculate eligibility.", 'error');
       }
     } catch (error) {
       console.error(error);
-      alert("An error occurred while assessing eligibility.");
+      addToast("An error occurred while assessing eligibility.", 'error');
     } finally {
       setLoading(false);
     }

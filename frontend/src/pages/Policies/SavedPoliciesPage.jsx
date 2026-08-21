@@ -5,8 +5,10 @@ import SavedPolicyGrid from './SavedPolicyGrid';
 import BookmarkActivity from './BookmarkActivity';
 import Footer from '../../components/layout/Footer';
 import { getSavedPolicies, removeSavedPolicy } from '../../services/savedPolicy.service';
+import { useToast } from '../../hooks/useToast';
 
 const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
+  const { addToast } = useToast();
   const [savedList, setSavedList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +77,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
       setSavedList(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error("Failed to remove saved policy:", error);
-      alert("Failed to remove policy. Please try again.");
+      addToast("Failed to remove policy. Please try again.", 'error');
     }
   };
 
@@ -84,7 +86,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
   };
 
   const handleCompare = (activity) => {
-    alert(`Comparing original policy draft with update for: "${activity.message.split(":")[1].split("has")[0].trim()}"`);
+    addToast(`Comparing original policy draft with update for: "${activity.message.split(":")[1].split("has")[0].trim()}"`, 'info');
   };
 
   const handleToggleFilter = () => {
@@ -123,7 +125,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
         {/* Top Action Buttons */}
         <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
           <FilterButton onClick={handleToggleFilter} />
-          <ExportButton onClick={() => alert(`Exporting ${filteredList.length} bookmarked policies...`)} />
+          <ExportButton onClick={() => addToast(`Exporting ${filteredList.length} bookmarked policies...`, 'info')} />
         </div>
       </div>
 

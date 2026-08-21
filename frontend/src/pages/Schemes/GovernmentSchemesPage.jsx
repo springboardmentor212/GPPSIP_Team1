@@ -9,12 +9,14 @@ import { getSchemes } from '../../services/scheme.service';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { applyForScheme } from '../../services/application.service';
 import useAuth from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 
 // Re-factored to industrial standard: components rely on unified Scheme object props
 // No fake placeholders used on the client.
 
 const GovernmentSchemesPage = ({ searchQuery = "" }) => {
   const { user } = useAuth();
+  const { addToast } = useToast();
 
   // Database schemes state
   const [schemes, setSchemes] = useState([]);
@@ -71,13 +73,14 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
 
   const handleApply = (scheme) => {
     if (!user) {
-      alert("Please log in to apply for schemes.");
+      addToast("Please log in to apply for schemes.", 'error');
       return;
     }
 
     if (user.role !== 'Citizen') {
-      alert(
-        `Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`
+      addToast(
+        `Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`,
+        'error'
       );
       return;
     }
@@ -89,7 +92,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
   const handleApplySuccess = (application) => {
     setApplyModalOpen(false);
     setSelectedSchemeToApply(null);
-    alert(`Successfully applied! Application ID: ${application.applicationId}`);
+    addToast(`Successfully applied! Application ID: ${application.applicationId}`, 'success');
   };
 
   const handleToggleSort = () => {
@@ -301,8 +304,8 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
       {/* Bottom CTA Banner */}
       <CTASection
         onStartMatching={() =>
-          alert(
-            "Initiating Profile Analyzer..."
+          addToast(
+            "Initiating Profile Analyzer...", 'info'
           )
         }
       />

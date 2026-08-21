@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaBell, FaSearch, FaRegEnvelope } from 'react-icons/fa';
 import { getNotifications } from '../../services/notification.service';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 const TopNavbar = ({ user, activeTab = 'dashboard', setSearchQuery }) => {
   const [unreadCount, setUnreadCount] = useState(0);
