@@ -71,39 +71,69 @@ const chat = async (req, res, next) => {
                 { description: searchRegex },
                 { content: searchRegex }
             ]
-        }).limit(2);
+        }).limit(3);
 
         const schemes = await Scheme.find({
             $or: [
                 { title: searchRegex },
                 { description: searchRegex }
             ]
-        }).limit(2);
+        }).limit(3);
 
-        let responseContent = "I'm PolicyGPT, your AI assistant. ";
+        let contextDocs = [];
         let citations = [];
 
-        if (policies.length === 0 && schemes.length === 0) {
-            // General conversation handling
-            if (message.toLowerCase().includes("hello") || message.toLowerCase().includes("hi")) {
-                responseContent = "Hello! I am PolicyGPT. How can I help you discover policies and schemes today?";
-            } else {
-                responseContent += "I couldn't find any specific policies or schemes matching your query. Could you please provide more details or try different keywords?";
-            }
-        } else {
-            responseContent += "Based on my knowledge base, here are some relevant resources I found:\n\n";
-            
-            policies.forEach(p => {
-                responseContent += `- **${p.title}**: ${p.description ? p.description.substring(0, 120) : 'No description'}...\n`;
-                citations.push({ title: p.title, link: `/dashboard?tab=policies`, id: p._id });
-            });
+        policies.forEach(p => {
+            contextDocs.push(`Policy: ${p.title}\nDescription: ${p.description}\n`);
+            citations.push({ title: p.title, link: `/dashboard?tab=policies`, id: p._id });
+        });
 
-            schemes.forEach(s => {
-                responseContent += `- **${s.title}**: ${s.description ? s.description.substring(0, 120) : 'No description'}...\n`;
-                citations.push({ title: s.title, link: `/schemes/${s._id}`, id: s._id });
-            });
-            
-            responseContent += "\nYou can click the citations below to read more about them.";
+        schemes.forEach(s => {
+            contextDocs.push(`Scheme: ${s.title}\nDescription: ${s.description}\n`);
+            citations.push({ title: s.title, link: `/schemes/${s._id}`, id: s._id });
+        });
+
+        let contextString = contextDocs.length > 0 
+            ? `Here is the relevant context from the database:\n\n${contextDocs.join('\n')}\n\n`
+            : "No specific policies or schemes were found in the database for this query.\n\n";
+
+        const systemPrompt = `You are PolicyGPT, a helpful and professional AI assistant for a Government Policy & Public Scheme Intelligence Platform.
+Your goal is to answer the user's question based strictly on the provided context. If the answer is not in the context, do not make up information, but answer as best as you can in a general helpful manner.
+Always be polite and structured in your response. Do not output raw markdown links or HTML. Keep the response concise but informative.
+`;
+
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        let responseContent = "";
+
+        if (!geminiApiKey) {
+            responseContent = "I'm PolicyGPT. (Error: GEMINI_API_KEY is missing in the backend environment. Please configure it to enable the full AI capabilities). " + 
+                (contextDocs.length > 0 ? "However, here is what I found in the database:\n\n" + contextDocs.join('\n') : "I couldn't find any resources for your query.");
+        } else {
+            // Call Gemini API via native fetch
+            try {
+                const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${systemPrompt}\n\n${contextString}\n\nUser Question: ${message}`
+                            }]
+                        }]
+                    })
+                });
+
+                const aiData = await aiResponse.json();
+                
+                if (aiData.candidates && aiData.candidates.length > 0) {
+                    responseContent = aiData.candidates[0].content.parts[0].text;
+                } else {
+                    responseContent = "I'm sorry, I couldn't generate a response at this time.";
+                }
+            } catch (err) {
+                console.error("Gemini API Error:", err);
+                responseContent = "I'm sorry, I encountered an error communicating with the AI service. Please try again later.";
+            }
         }
 
         const assistantMsg = await ChatMessage.create({
