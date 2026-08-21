@@ -5,9 +5,9 @@ import api from './api';
  * @param {string} schemeId - Database ID of the scheme
  * @returns {Promise<{ success: boolean, message: string, application: Object }>}
  */
-export async function applyForScheme(schemeId) {
+export async function applyForScheme(schemeId, documents = []) {
   try {
-    const response = await api.post('/applications', { schemeId });
+    const response = await api.post('/applications', { schemeId, documents });
     return response.data;
   } catch (error) {
     throw error;

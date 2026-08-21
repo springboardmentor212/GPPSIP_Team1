@@ -12,6 +12,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 /* require routes */
 const authRouter = require('./routes/auth.routes');
@@ -26,9 +28,10 @@ const notificationRouter = require('./routes/notification.routes');
 const feedbackRouter = require('./routes/feedback.routes');
 const reportRouter = require('./routes/report.routes');
 const adminRouter = require('./routes/admin.routes');
+const assistantRouter = require('./routes/assistant.routes');
 const savedPolicyRouter = require('./routes/savedPolicy.routes');
-
 const analyticsRouter = require('./routes/analytics.routes');
+const uploadRouter = require('./routes/upload.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
@@ -43,8 +46,10 @@ app.use('/api/notifications', notificationRouter);
 app.use('/api/feedback', feedbackRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/reports', reportRouter);
+app.use('/api/assistant', assistantRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/saved-policies', savedPolicyRouter);
+app.use('/api/upload', uploadRouter);
 /* health check route */
 app.get('/health', (req, res) => {
   res.status(200).json({

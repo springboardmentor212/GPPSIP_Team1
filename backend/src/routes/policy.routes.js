@@ -3,16 +3,14 @@ const {
     createPolicy, 
     getPolicies, 
     getPolicyById, 
-    updatePolicy, 
-    updatePolicyStatus 
+    updatePolicy 
 } = require('../controllers/policy.controller');
 const identifyUser = require('../middlewares/auth.middleware');
 const authorize = require('../middlewares/role.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { 
     createPolicySchema, 
-    updatePolicySchema, 
-    updateStatusSchema 
+    updatePolicySchema 
 } = require('../validations/policy.validation');
 
 const policyRouter = express.Router();
@@ -45,11 +43,6 @@ policyRouter.get('/:id', getPolicyById);
  */
 policyRouter.put('/:id', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updatePolicySchema), updatePolicy);
 
-/**
- * @route PATCH /api/policies/:id/status
- * @desc Update policy status (Approve/Archive)
- * @access Private (Gov. Official, Super Admin)
- */
-policyRouter.patch('/:id/status', identifyUser, authorize(['Gov. Official', 'Super Admin']), validate(updateStatusSchema), updatePolicyStatus);
+
 
 module.exports = policyRouter;

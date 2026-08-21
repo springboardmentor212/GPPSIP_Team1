@@ -639,7 +639,7 @@ const ApprovalsDashboard = () => {
                                 )}
 
                                 {/* Policy Edit */}
-                                {item.type === 'Policy' && (
+                                {item.type === 'Policy' && (user.role === 'Super Admin' || item.raw.creator?._id === user.id || item.raw.creator === user.id) && (
                                   <button
                                     onClick={() => {
                                       setEditingItem(item.raw);
@@ -652,7 +652,7 @@ const ApprovalsDashboard = () => {
                                 )}
 
                                 {/* Archive Action */}
-                                {item.type === 'Policy' && item.status !== 'Archived' && (
+                                {item.type === 'Policy' && item.status !== 'Archived' && (user.role === 'Super Admin' || item.raw.creator?._id === user.id || item.raw.creator === user.id) && (
                                   <button
                                     onClick={() => handleAction('archive', item.type, item.id)}
                                     className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs font-bold transition-colors cursor-pointer border-none"
