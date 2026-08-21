@@ -9,209 +9,55 @@ import RecentActivityTimeline from './RecentActivityTimeline';
 import Footer from '../../components/layout/Footer';
 import { FaChevronDown } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth';
-import { getMyApplications } from '../../services/application.service';
+import { getNotifications, markAllAsRead, markAsRead, deleteNotification } from '../../services/notification.service';
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Education Policy Framework 2024",
-      subtitle: "The Ministry of Education has released the finalized framework for...",
-      timestamp: "10m ago",
-      unread: true,
-      priority: "HIGH",
-      source: "Ministry of Education",
-      iconType: "at",
-      category: "Policy Update",
-      receivedTime: "Mar 18, 2024 - 10:45 AM",
-      fullTitle: "Comprehensive Data Privacy & Security Framework (DPSF) 2024",
-      tags: ["Digital Infrastructure", "Active"],
-      description: "This policy introduces strict 72-hour breach notification rules and mandates local data residency for financial records. It replaces the fragmented regulations of the previous decade with a modern, high-accountability framework.",
-      aiInsight: "This framework significantly aligns with GDPR Article 33, requiring immediate escalation of security protocols for your current tech audit applications.",
-      department: "Min. of IT & Comm.",
-      publishedDate: "Jan 12, 2024",
-      isSaved: false
-    },
-    {
-      id: 2,
-      title: "Eligibility Status Updated",
-      subtitle: "Your application for the Rural Tech Grant (RTG-202) has been moved to...",
-      timestamp: "2h ago",
-      unread: false,
-      priority: "NORMAL",
-      source: "Dept. of Science & Tech",
-      iconType: "check",
-      category: "Application Alert",
-      receivedTime: "Mar 18, 2024 - 08:30 AM",
-      fullTitle: "Rural Tech Grant (RTG-202) Application Progress",
-      tags: ["Applications", "Active"],
-      description: "Your application for the Rural Tech Grant (RTG-202) has successfully passed stage 2 technical review and is now scheduled for final committee evaluation.",
-      aiInsight: "Documentation compliance score is evaluated at 94%. Ensure financial co-funding proof is updated.",
-      department: "Dept. of Science & Tech",
-      publishedDate: "Feb 14, 2024",
-      isSaved: false
-    },
-    {
-      id: 3,
-      title: "Major Update: Healthcare Subsidy Scheme",
-      subtitle: "Benefit caps have been increased by 15% for urban families effective from...",
-      timestamp: "5h ago",
-      unread: false,
-      priority: "NORMAL",
-      source: "Ministry of Health",
-      iconType: "landmark",
-      category: "Scheme Update",
-      receivedTime: "Mar 18, 2024 - 05:15 AM",
-      fullTitle: "Urban Healthcare Subsidy Subsidy Expansion Guidelines",
-      tags: ["Schemes", "Active"],
-      description: "Benefit caps have been increased by 15% for urban families effective immediately. Revised caps apply to all existing active claims.",
-      aiInsight: "This scheme adjustment allows up to ₹45,000 additional annual claim benefits for registered members.",
-      department: "Ministry of Health",
-      publishedDate: "Mar 01, 2024",
-      isSaved: false
-    },
-    {
-      id: 4,
-      title: "Weekly System Report Ready",
-      subtitle: "Your automated policy compliance report for Week 12 is now available for...",
-      timestamp: "Yesterday",
-      unread: false,
-      priority: "LOW",
-      source: "System Admin",
-      iconType: "cog",
-      category: "System Alert",
-      receivedTime: "Mar 17, 2024 - 06:00 PM",
-      fullTitle: "Weekly Policy Audit & System Health Report (Week 12)",
-      tags: ["System", "Active"],
-      description: "Your automated policy compliance report for Week 12 is now generated. Zero critical compliance breaches detected.",
-      aiInsight: "All 18 monitored legal frameworks remain in full compliance status.",
-      department: "System Admin",
-      publishedDate: "Mar 17, 2024",
-      isSaved: false
-    }
-  ]);
-
-  const [selectedId, setSelectedId] = useState(1);
+  const [notifications, setNotifications] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const { user } = useAuth();
-  const [apps, setApps] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && user.role === 'Citizen') {
-      setLoading(true);
-
-      getMyApplications()
-        .then(res => {
-          if (res.success && Array.isArray(res.applications)) {
-            setApps(res.applications);
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const res = await getNotifications();
+        if (res.success && Array.isArray(res.notifications)) {
+          const formatted = res.notifications.map(n => ({
+            id: n._id,
+            title: n.title,
+            subtitle: n.subtitle || n.description?.substring(0, 50) + '...',
+            timestamp: new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            unread: n.unread,
+            priority: n.priority,
+            source: n.source || "System",
+            iconType: n.iconType || "bell",
+            category: n.category,
+            receivedTime: new Date(n.createdAt).toLocaleString('en-GB'),
+            fullTitle: n.title,
+            tags: n.tags || [],
+            description: n.description,
+            aiInsight: n.aiInsight || "",
+            department: n.department || "General",
+            publishedDate: new Date(n.createdAt).toLocaleDateString('en-GB'),
+            isSaved: n.isSaved || false
+          }));
+          setNotifications(formatted);
+          if (formatted.length > 0) {
+            setSelectedId(formatted[0].id);
           }
-        })
-        .catch(err => console.error(err))
-        .finally(() => setLoading(false));
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchNotifications();
     }
   }, [user]);
-
-  useEffect(() => {
-    if (user && user.role === 'Citizen' && apps.length > 0) {
-      const mapped = apps
-        .filter(
-          a =>
-            a.status === 'Approved' ||
-            a.status === 'Rejected'
-        )
-        .map((app, idx) => {
-          const isApproved = app.status === 'Approved';
-
-          return {
-            id: app._id || idx,
-
-            title: isApproved
-              ? "Eligibility Status Approved"
-              : "Eligibility Status Rejected",
-
-            subtitle: isApproved
-              ? `Your application for ${app.scheme?.title || 'the scheme'} has been successfully approved.`
-              : `Your application for ${app.scheme?.title || 'the scheme'} was rejected.`,
-
-            timestamp: app.reviewedAt
-              ? new Date(app.reviewedAt).toLocaleDateString(
-                  'en-GB',
-                  {
-                    day: 'numeric',
-                    month: 'short'
-                  }
-                )
-              : 'Just now',
-
-            unread: false,
-
-            priority: isApproved
-              ? "HIGH"
-              : "NORMAL",
-
-            source:
-              app.scheme?.department ||
-              app.scheme?.category ||
-              "Gov. Department",
-
-            iconType: isApproved
-              ? "check"
-              : "cog",
-
-            category: "Application Alert",
-
-            receivedTime: app.reviewedAt
-              ? new Date(
-                  app.reviewedAt
-                ).toLocaleString('en-GB')
-              : '',
-
-            fullTitle: isApproved
-              ? `Application Approved: ${app.scheme?.title}`
-              : `Application Rejected: ${app.scheme?.title}`,
-
-            tags: [
-              "Applications",
-              app.status
-            ],
-
-            description: isApproved
-              ? `We are pleased to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been reviewed and approved.`
-              : `We regret to inform you that your application (ID: ${app.applicationId}) for the scheme "${app.scheme?.title}" has been rejected. Reason: ${app.rejectionReason || 'No details provided.'}`,
-
-            aiInsight: isApproved
-              ? "Your application is fully approved. You are eligible to receive maximum benefit Aid."
-              : "We recommend reviewing the rejection reason, updating your documentation, and contacting support if needed.",
-
-            department:
-              app.scheme?.category ||
-              app.scheme?.department ||
-              "Department",
-
-            publishedDate: app.reviewedAt
-              ? new Date(
-                  app.reviewedAt
-                ).toLocaleDateString('en-GB')
-              : '',
-
-            isSaved: false
-          };
-        });
-
-      setNotifications(mapped);
-
-      if (mapped.length > 0) {
-        setSelectedId(mapped[0].id);
-      } else {
-        setNotifications([]);
-      }
-    } else if (
-      user &&
-      user.role === 'Citizen'
-    ) {
-      setNotifications([]);
-    }
-  }, [apps, user]);
 
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -225,13 +71,18 @@ const NotificationsPage = () => {
     ).length;
   }, [notifications]);
 
-  const handleMarkAllRead = () => {
-    setNotifications(prev =>
-      prev.map(n => ({
-        ...n,
-        unread: false
-      }))
-    );
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications(prev =>
+        prev.map(n => ({
+          ...n,
+          unread: false
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleToggleSave = (id) => {
@@ -247,22 +98,23 @@ const NotificationsPage = () => {
     );
   };
 
-  const handleDismiss = (id) => {
-    setNotifications(prev =>
-      prev.filter(n => n.id !== id)
-    );
+  const handleDismiss = async (id) => {
+    try {
+      await deleteNotification(id);
+      setNotifications(prev =>
+        prev.filter(n => n.id !== id)
+      );
 
-    if (selectedId === id) {
-      const remaining =
-        notifications.filter(
-          n => n.id !== id
-        );
-
-      if (remaining.length > 0) {
-        setSelectedId(
-          remaining[0].id
-        );
+      if (selectedId === id) {
+        const remaining = notifications.filter(n => n.id !== id);
+        if (remaining.length > 0) {
+          setSelectedId(remaining[0].id);
+        } else {
+          setSelectedId(null);
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -436,21 +288,18 @@ const NotificationsPage = () => {
                 isSelected={
                   selectedId === item.id
                 }
-                onSelect={() => {
+                onSelect={async () => {
                   setSelectedId(item.id);
 
                   if (item.unread) {
-                    setNotifications(
-                      prev =>
-                        prev.map(n =>
-                          n.id === item.id
-                            ? {
-                                ...n,
-                                unread: false
-                              }
-                            : n
-                        )
-                    );
+                    try {
+                      await markAsRead(item.id);
+                      setNotifications(prev =>
+                        prev.map(n => n.id === item.id ? { ...n, unread: false } : n)
+                      );
+                    } catch (err) {
+                      console.error(err);
+                    }
                   }
                 }}
               />
