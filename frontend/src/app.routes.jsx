@@ -11,7 +11,14 @@ import NotFoundPage from "./pages/NotFoundPage";
 import useAuth from "./hooks/useAuth";
 
 const GuestRoute = ({ children }) => {
-    const { user } = useAuth();
+    const { user, isInitializing } = useAuth();
+    if (isInitializing) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#f0f4f9]">
+                <div className="w-12 h-12 border-4 border-[#0052cc] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
     if (user) {
         return <Navigate to="/" replace />;
     }

@@ -56,13 +56,14 @@ import {
 } from '../../services/application.service';
 import { getAdminStats } from '../../services/admin.service';
 import { savePolicy, removeSavedPolicy } from '../../services/savedPolicy.service';
+import { useToast } from '../../hooks/useToast';
 
 // Import UI components
 import Modal from '../../components/modals/Modal';
 import StatusBadge from '../../components/ui/StatusBadge';
 
 const Dashboard = () => {
-  const { user, handleLogout } = useAuth();
+  const { user, isInitializing, handleLogout } = useAuth();
   const { addToast } = useToast();
   const location = useLocation();
 
@@ -240,6 +241,15 @@ const Dashboard = () => {
   }, []);
 
   // Protect route
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f0f4f9] space-y-4">
+        <div className="w-12 h-12 border-4 border-[#0052cc] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-slate-500">Connecting to server, please wait...</p>
+      </div>
+    );
+  }
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -584,9 +594,7 @@ const Dashboard = () => {
               {/* LEFT & CENTER COLUMN */}
               <div className="lg:col-span-2 space-y-8">
 
-                {/* Citizen Dashboard Application Status Tracker */}
-                {user?.role === 'Citizen' &&
-                  renderApplicationTracker()}
+
 
                 {/* Super Admin System Overview */}
                 {user?.role === 'Super Admin' ? (
