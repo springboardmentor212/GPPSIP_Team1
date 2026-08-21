@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     FaBuilding,
     FaFileAlt,
@@ -7,43 +7,73 @@ import {
     FaUsers,
     FaClock,
     FaArrowUp,
-    FaArrowDown
+    FaArrowDown,
+    FaSpinner
 } from 'react-icons/fa';
+import { getKPIs } from '../../services/analytics.service';
 
-const metrics = [
-    {
-        label: 'Total Departments', value: '24',
-        delta: '+2', deltaUp: true,
-        icon: FaBuilding, iconBg: 'bg-blue-50 text-[#0052cc]'
-    },
-    {
-        label: 'Active Policies', value: '1,482',
-        delta: '+3%', deltaUp: true,
-        icon: FaFileAlt, iconBg: 'bg-indigo-50 text-indigo-600'
-    },
-    {
-        label: 'Published Index', value: '84',
-        delta: '-2%', deltaUp: false,
-        icon: FaCheckCircle, iconBg: 'bg-emerald-50 text-emerald-600'
-    },
-    {
-        label: 'Approval Rate', value: '92.4%',
-        delta: '+1.2%', deltaUp: true,
-        icon: FaThumbsUp, iconBg: 'bg-cyan-50 text-cyan-600'
-    },
-    {
-        label: 'Citizen Reach', value: '12.4M',
-        delta: '+8%', deltaUp: true,
-        icon: FaUsers, iconBg: 'bg-purple-50 text-purple-600'
-    },
-    {
-        label: 'Avg. Process Time', value: '14d',
-        delta: '+1d', deltaUp: false,
-        icon: FaClock, iconBg: 'bg-amber-50 text-amber-600'
+const AnalyticsMetricsGrid = ({ timeRange = '30d' }) => {
+    const [kpis, setKpis] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchKPIs = async () => {
+            setIsLoading(true);
+            try {
+                const res = await getKPIs(timeRange);
+                if (res.success && res.kpis) {
+                    setKpis(res.kpis);
+                }
+            } catch (err) {
+                console.error("Failed to fetch KPIs:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchKPIs();
+    }, [timeRange]);
+
+    if (isLoading || !kpis) {
+        return (
+            <div className="flex justify-center items-center h-24">
+                <FaSpinner className="animate-spin text-[#0052cc] w-6 h-6" />
+            </div>
+        );
     }
-];
 
-const AnalyticsMetricsGrid = () => {
+    const metrics = [
+        {
+            label: 'Total Schemes', value: kpis.totalSchemes,
+            delta: '+2', deltaUp: true,
+            icon: FaBuilding, iconBg: 'bg-blue-50 text-[#0052cc]'
+        },
+        {
+            label: 'Active Policies', value: kpis.totalPolicies,
+            delta: '+3%', deltaUp: true,
+            icon: FaFileAlt, iconBg: 'bg-indigo-50 text-indigo-600'
+        },
+        {
+            label: 'Total Applications', value: kpis.totalApplications,
+            delta: '+12%', deltaUp: true,
+            icon: FaCheckCircle, iconBg: 'bg-emerald-50 text-emerald-600'
+        },
+        {
+            label: 'Approval Rate', value: `${kpis.approvalRate}%`,
+            delta: '+1.2%', deltaUp: kpis.approvalRate >= 50,
+            icon: FaThumbsUp, iconBg: 'bg-cyan-50 text-cyan-600'
+        },
+        {
+            label: 'Citizen Reach', value: kpis.citizenReach,
+            delta: '+8%', deltaUp: true,
+            icon: FaUsers, iconBg: 'bg-purple-50 text-purple-600'
+        },
+        {
+            label: 'Avg. Process Time', value: `${kpis.avgProcessingTime}d`,
+            delta: '-1d', deltaUp: true,
+            icon: FaClock, iconBg: 'bg-amber-50 text-amber-600'
+        }
+    ];
+
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 select-none text-left">
             {metrics.map((m) => {

@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import { FaSlidersH, FaFileExport } from 'react-icons/fa';
+import { FaSlidersH, FaFileExport, FaSpinner } from 'react-icons/fa';
+import { exportReport } from '../../services/report.service';
 
 const CustomExportStudio = ({ onExportData }) => {
     const [dateRange, setDateRange] = useState('30d');
     const [department, setDepartment] = useState('all');
     const [category, setCategory] = useState('privacy');
     const [format, setFormat] = useState('PDF');
+    const [isExporting, setIsExporting] = useState(false);
 
-    const handleExport = () => {
-        onExportData({ dateRange, department, category, format });
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            const reportData = { dateRange, department, category, format };
+            const res = await exportReport(reportData);
+            if (res.success) {
+                if (onExportData) onExportData(res);
+                else {
+                    // Display success (parent handles toast if onExportData passed)
+                    console.log('Report generated:', res);
+                }
+            }
+        } catch (error) {
+            console.error('Export failed:', error);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
@@ -112,10 +129,11 @@ const CustomExportStudio = ({ onExportData }) => {
             <div className="flex justify-end pt-2">
                 <button
                     onClick={handleExport}
-                    className="px-6 py-2.5 bg-[#0052cc] hover:bg-[#0041a8] text-white rounded-xl text-xs font-extrabold flex items-center gap-2.5 shadow-md shadow-blue-500/20 transition-all active:scale-[0.98] cursor-pointer"
+                    disabled={isExporting}
+                    className={`px-6 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer ${isExporting ? 'bg-[#0041a8] text-white opacity-75' : 'bg-[#0052cc] hover:bg-[#0041a8] text-white active:scale-[0.98]'}`}
                 >
-                    <FaFileExport className="w-3.5 h-3.5" />
-                    <span>Export Selected Data</span>
+                    {isExporting ? <FaSpinner className="w-3.5 h-3.5 animate-spin" /> : <FaFileExport className="w-3.5 h-3.5" />}
+                    <span>{isExporting ? 'Exporting...' : 'Export Selected Data'}</span>
                 </button>
             </div>
 

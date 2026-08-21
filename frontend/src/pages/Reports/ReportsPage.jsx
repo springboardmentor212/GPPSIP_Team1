@@ -53,30 +53,30 @@ const ReportsPage = () => {
             />
 
             {/* 3. Metrics Grid (6 KPI Cards) */}
-            <AnalyticsMetricsGrid />
+            <AnalyticsMetricsGrid timeRange={period} />
 
             {/* 4. Charts Row: Trend + Category Distribution */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div className="lg:col-span-7">
-                    <PerformanceTrendChart />
+                    <PerformanceTrendChart timeRange={period} />
                 </div>
                 <div className="lg:col-span-5">
-                    <CategoryDistributionChart />
+                    <CategoryDistributionChart timeRange={period} />
                 </div>
             </div>
 
             {/* 5. Published Policies + Citizen Engagement */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div className="lg:col-span-5">
-                    <PublishedPoliciesWidget />
+                    <PublishedPoliciesWidget timeRange={period} />
                 </div>
                 <div className="lg:col-span-7">
-                    <CitizenEngagementChart />
+                    <CitizenEngagementChart timeRange={period} />
                 </div>
             </div>
 
             {/* 6. Top Performing Departments */}
-            <TopPerformingDepartments />
+            <TopPerformingDepartments timeRange={period} />
 
             {/* 7. Main 2-Column Layout: Table + Right Sidebar */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -84,6 +84,7 @@ const ReportsPage = () => {
                 {/* LEFT: Performance Index Table (8 Cols) */}
                 <div className="lg:col-span-8">
                     <DepartmentPerformanceIndexTable
+                        timeRange={period}
                         onViewAll={() => showToast('Loading all 24 department records...')}
                     />
                 </div>
