@@ -64,6 +64,14 @@ app.get("/", (req, res) => {
   res.send("Welcome to PolicyGPT backend!");
 });
 
+/* 404 catch-all middleware */
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: 'API Route Not Found'
+  });
+});
+
 /* global error handling middleware */
 app.use(errorHandler);
 
