@@ -6,6 +6,7 @@ import BookmarkActivity from './BookmarkActivity';
 import Footer from '../../components/layout/Footer';
 import { getSavedPolicies, removeSavedPolicy } from '../../services/savedPolicy.service';
 import { useToast } from '../../hooks/useToast';
+import { FaBalanceScale } from 'react-icons/fa';
 
 const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
   const { addToast } = useToast();
@@ -49,20 +50,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
     fetchSavedPolicies();
   }, []);
 
-  const [activities, setActivities] = useState([
-    {
-      id: 1,
-      type: "update",
-      message: "New version available: Public Health Emergency Preparedness Act 2024 has been updated.",
-      time: "2 hours ago"
-    },
-    {
-      id: 2,
-      type: "share",
-      message: "You shared \"Smart City Infrastructure Subsidies\" with Internal Planning Team.",
-      time: "Yesterday, 4:30 PM"
-    }
-  ]);
+  const [activities, setActivities] = useState([]);
 
   const [categoryFilter, setCategoryFilter] = useState("All");
 
@@ -124,6 +112,12 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
 
         {/* Top Action Buttons */}
         <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+          <button
+            onClick={() => setActiveTab('compare')}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-colors cursor-pointer border-none"
+          >
+            <FaBalanceScale className="text-[#0052cc]" /> Compare
+          </button>
           <FilterButton onClick={handleToggleFilter} />
           <ExportButton onClick={() => addToast(`Exporting ${filteredList.length} bookmarked policies...`, 'info')} />
         </div>
@@ -160,12 +154,14 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
         )}
       </div>
 
-      {/* Recent Activity Section */}
+      {/* Recent Activity Section (Hidden for now as requested) */}
+      {/* 
       <BookmarkActivity
         activities={activities}
         onClearHistory={handleClearHistory}
         onCompare={handleCompare}
-      />
+      /> 
+      */}
 
       {/* Footer Branding Links */}
       <Footer />

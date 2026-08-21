@@ -20,7 +20,6 @@ import Footer from '../../components/layout/Footer';
 import WelcomeBanner from '../../components/dashboard/WelcomeBanner';
 import StatsCard from '../../components/cards/StatsCard';
 import RecommendationCard from '../../components/cards/RecommendationCard';
-import AssistantPanel from '../../components/dashboard/AssistantPanel';
 import QuickActionCard from '../../components/dashboard/QuickActionCard';
 import ApplicationTrend from '../../components/dashboard/ApplicationTrend';
 import SchemeCategoryCard from '../../components/dashboard/SchemeCategoryCard';
@@ -40,6 +39,7 @@ import SettingsPage from '../Settings/SettingsPage';
 import AIAssistantPage from '../AIAssistant/AIAssistantPage';
 import ReportsPage from '../Reports/ReportsPage';
 import FeedbackPage from '../Feedback/FeedbackPage';
+import ComparisonPage from '../Policies/ComparisonPage';
 import { useLocation } from 'react-router';
 
 // Import Super Admin pages
@@ -55,13 +55,16 @@ import {
   getPendingApplications
 } from '../../services/application.service';
 import { getAdminStats } from '../../services/admin.service';
+import { savePolicy, removeSavedPolicy } from '../../services/savedPolicy.service';
+import { useToast } from '../../hooks/useToast';
 
 // Import UI components
 import Modal from '../../components/modals/Modal';
 import StatusBadge from '../../components/ui/StatusBadge';
 
 const Dashboard = () => {
-  const { user, handleLogout } = useAuth();
+  const { user, isInitializing, handleLogout } = useAuth();
+  const { addToast } = useToast();
   const location = useLocation();
 
   // Parse initial tab from URL query params (e.g. ?tab=schemes)
@@ -222,7 +225,7 @@ const Dashboard = () => {
           policies: polRes.policies?.length || 0,
           schemes: schRes.schemes?.length || 0,
           applications: appCount,
-          recommendations: schRes.schemes?.slice(0, 2) || [],
+          recommendations: polRes.policies?.slice(0, 2) || [],
           citizen: citizenStats,
           admin: adminStats
         });
@@ -238,17 +241,37 @@ const Dashboard = () => {
   }, []);
 
   // Protect route
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f0f4f9] space-y-4">
+        <div className="w-12 h-12 border-4 border-[#0052cc] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-bold text-slate-500">Connecting to server, please wait...</p>
+      </div>
+    );
+  }
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Handle bookmark toggle
-  const toggleSaved = (index) => {
-    setSavedSchemes((prev) => {
-      const next = [...prev];
-      next[index] = !next[index];
-      return next;
-    });
+  const toggleSaved = async (idx, policyId) => {
+    try {
+      const currentlySaved = savedSchemes[idx];
+      if (currentlySaved) {
+        await removeSavedPolicy(policyId);
+        addToast('Policy removed from saved list.', 'success');
+      } else {
+        await savePolicy(policyId);
+        addToast('Policy saved successfully!', 'success');
+      }
+      setSavedSchemes((prev) => {
+        const next = [...prev];
+        next[idx] = !next[idx];
+        return next;
+      });
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to save policy.', 'error');
+    }
   };
 
   const renderApplicationTracker = () => {
@@ -571,9 +594,7 @@ const Dashboard = () => {
               {/* LEFT & CENTER COLUMN */}
               <div className="lg:col-span-2 space-y-8">
 
-                {/* Citizen Dashboard Application Status Tracker */}
-                {user?.role === 'Citizen' &&
-                  renderApplicationTracker()}
+
 
                 {/* Super Admin System Overview */}
                 {user?.role === 'Super Admin' ? (
@@ -664,26 +685,26 @@ const Dashboard = () => {
                       <div className="flex flex-col gap-5">
 
                         {stats.recommendations.map(
-                          (scheme, idx) => (
+                          (policy, idx) => (
                             <RecommendationCard
                               key={
-                                scheme._id || idx
+                                policy._id || idx
                               }
-                              title={scheme.title}
-                              ministry={scheme.category}
+                              title={policy.title}
+                              ministry={policy.department || policy.category}
                               matchPercentage="New"
-                              eligibilityTag="Check Eligibility"
+                              eligibilityTag="Read More"
                               description={
-                                scheme.description
+                                policy.description
                               }
                               isSaved={
                                 savedSchemes[idx]
                               }
                               onSave={() =>
-                                toggleSaved(idx)
+                                toggleSaved(idx, policy._id)
                               }
                               onApply={() =>
-                                setActiveTab('schemes')
+                                setActiveTab('policy-details')
                               }
                             />
                           )
@@ -715,15 +736,6 @@ const Dashboard = () => {
 
               {/* RIGHT COLUMN */}
               <div className="space-y-8">
-
-                {/* AI Assistant Floating Widget */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-black text-slate-800 tracking-tight">
-                    AI Assistant Panel
-                  </h3>
-
-                  <AssistantPanel />
-                </div>
 
                 {/* Quick Actions Grid */}
                 <div className="space-y-3">
@@ -871,6 +883,13 @@ const Dashboard = () => {
         return (
           <SettingsPage
             dbStatus={dbStatus}
+          />
+        );
+
+      case 'compare':
+        return (
+          <ComparisonPage
+            onBack={() => setActiveTab('dashboard')}
           />
         );
 
