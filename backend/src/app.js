@@ -26,6 +26,7 @@ const notificationRouter = require('./routes/notification.routes');
 const feedbackRouter = require('./routes/feedback.routes');
 const reportRouter = require('./routes/report.routes');
 const adminRouter = require('./routes/admin.routes');
+const savedPolicyRouter = require('./routes/savedPolicy.routes');
 
 const analyticsRouter = require('./routes/analytics.routes');
 
@@ -43,6 +44,7 @@ app.use('/api/feedback', feedbackRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/saved-policies', savedPolicyRouter);
 /* health check route */
 app.get('/health', (req, res) => {
   res.status(200).json({

@@ -7,6 +7,7 @@ import DocumentGrid from '../../components/common/DocumentGrid';
 import QuickActionPanel from '../../components/dashboard/QuickActionPanel';
 import RelatedPolicies from './RelatedPolicies';
 import Footer from '../../components/layout/Footer';
+import { savePolicy, removeSavedPolicy, checkSavedPolicy } from '../../services/savedPolicy.service';
 
 const PolicyDetailsPage = ({ policy, onBack }) => {
   // Map backend fields to frontend UI expectation
@@ -23,8 +24,28 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
   // Setup local bookmark state linked to the policy ID
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const handleBookmarkToggle = () => {
-    setIsBookmarked(!isBookmarked);
+  React.useEffect(() => {
+    if (mappedPolicy?._id) {
+      checkSavedPolicy(mappedPolicy._id).then(res => {
+        if (res.success) setIsBookmarked(res.isSaved);
+      }).catch(err => console.error("Failed to check saved status:", err));
+    }
+  }, [mappedPolicy?._id]);
+
+  const handleBookmarkToggle = async () => {
+    if (!mappedPolicy?._id) return;
+    try {
+      if (isBookmarked) {
+        await removeSavedPolicy(mappedPolicy._id);
+        setIsBookmarked(false);
+      } else {
+        await savePolicy(mappedPolicy._id);
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark:", error);
+      alert("Failed to update bookmark status.");
+    }
   };
 
   const handleDownloadPDF = () => {
