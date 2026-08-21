@@ -68,6 +68,11 @@ const updatePolicy = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Policy not found' });
         }
 
+        // Access Control: Only Creator or Super Admin can update
+        if (policy.creator.toString() !== req.user.id && req.user.role !== 'Super Admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden: You can only update policies you created' });
+        }
+
         // Only allow update if in Draft status
         if (policy.status !== 'Draft') {
             return res.status(400).json({ success: false, message: 'Only policies in Draft status can be updated' });

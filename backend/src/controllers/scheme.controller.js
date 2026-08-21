@@ -68,6 +68,11 @@ const updateScheme = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Scheme not found' });
         }
 
+        // Access Control: Only Creator or Super Admin can update
+        if (scheme.creator.toString() !== req.user.id && req.user.role !== 'Super Admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden: You can only update schemes you created' });
+        }
+
         // Explicitly update only allowed fields if they exist in req.body
         const { title, description, category, eligibilityRules } = req.body;
         
@@ -90,15 +95,19 @@ const updateScheme = async (req, res, next) => {
  */
 const archiveScheme = async (req, res, next) => {
     try {
-        const scheme = await Scheme.findByIdAndUpdate(
-            req.params.id,
-            { status: 'Archived' },
-            { new: true, runValidators: true }
-        );
-
+        const scheme = await Scheme.findById(req.params.id);
+        
         if (!scheme) {
             return res.status(404).json({ success: false, message: 'Scheme not found' });
         }
+
+        // Access Control: Only Creator or Super Admin can archive
+        if (scheme.creator.toString() !== req.user.id && req.user.role !== 'Super Admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden: You can only archive schemes you created' });
+        }
+
+        scheme.status = 'Archived';
+        await scheme.save();
 
         res.status(200).json({ success: true, message: 'Scheme archived successfully', scheme });
     } catch (error) {

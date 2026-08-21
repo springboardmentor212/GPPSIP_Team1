@@ -101,6 +101,14 @@ const approvePolicy = async (req, res, next) => {
             });
         }
 
+        // Maker-Checker enforcement
+        if (policy.creator.toString() === req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Maker-Checker Violation: You cannot approve a policy that you created.'
+            });
+        }
+
         policy.status = 'Approved';
         policy.approvedBy = req.user.id;
         policy.reviewedBy = req.user.id;
@@ -159,6 +167,14 @@ const rejectPolicy = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: `Cannot reject a policy with status "${policy.status}". Only Pending policies can be rejected.`
+            });
+        }
+
+        // Maker-Checker enforcement
+        if (policy.creator.toString() === req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Maker-Checker Violation: You cannot reject a policy that you created.'
             });
         }
 
