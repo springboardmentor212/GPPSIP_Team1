@@ -21,6 +21,14 @@ const applicationSchema = new mongoose.Schema({
     enum: ['Pending', 'Approved', 'Rejected'],
     default: 'Pending'
   },
+  documents: [{
+    name: String,
+    url: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   rejectionReason: {
     type: String,
     default: ''

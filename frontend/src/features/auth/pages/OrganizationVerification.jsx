@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { FiUpload } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi';
+import { uploadDocument } from '../../../services/upload.service';
 
 const OrganizationVerification = () => {
     const navigate = useNavigate();
@@ -133,15 +134,21 @@ const OrganizationVerification = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (validate()) {
             setIsSubmitting(true);
-            setTimeout(() => {
+            try {
+                const uploadRes = await uploadDocument(formData.certificate);
+                if (uploadRes.success) {
+                    alert('Organization registration and certificate uploaded successfully!');
+                    navigate('/dashboard');
+                }
+            } catch (err) {
+                alert(err.response?.data?.message || err.message || 'File upload failed');
+            } finally {
                 setIsSubmitting(false);
-                alert('Organization registration completed successfully!');
-                navigate('/dashboard');
-            }, 1000);
+            }
         }
     };
 

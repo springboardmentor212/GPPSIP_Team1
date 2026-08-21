@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { FaInfoCircle } from 'react-icons/fa';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import { FiUploadCloud } from 'react-icons/fi';
+import { uploadDocument } from '../../../services/upload.service';
 
 const OfficialVerification = () => {
   const navigate = useNavigate();
@@ -117,15 +118,21 @@ const OfficialVerification = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      setTimeout(() => {
+      try {
+        const uploadRes = await uploadDocument(formData.idDocument);
+        if (uploadRes.success) {
+          alert('Official profile details and document submitted successfully!');
+          navigate('/dashboard');
+        }
+      } catch (err) {
+        alert(err.response?.data?.message || err.message || 'File upload failed');
+      } finally {
         setIsSubmitting(false);
-        alert('Official profile details submitted for verification successfully!');
-        navigate('/dashboard');
-      }, 1000);
+      }
     }
   };
 

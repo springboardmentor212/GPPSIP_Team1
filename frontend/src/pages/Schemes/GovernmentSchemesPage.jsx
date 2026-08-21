@@ -4,6 +4,7 @@ import FilterBar from '../../components/common/FilterBar';
 import CategoryTabs from '../../components/common/CategoryTabs';
 import SchemeCard from '../../components/cards/SchemeCard';
 import CTASection from '../../components/common/CTASection';
+import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import { getSchemes } from '../../services/scheme.service';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { applyForScheme } from '../../services/application.service';
@@ -22,6 +23,11 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
 
   const [activeTab, setActiveTab] = useState("All Schemes");
   const [bookmarkedIds, setBookmarkedIds] = useState([]);
+  
+  // Scheme Apply Modal state
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [selectedSchemeToApply, setSelectedSchemeToApply] = useState(null);
+  
   const [sortBy, setSortBy] = useState("Match");
   const [selectedScheme, setSelectedScheme] = useState(null);
 
@@ -63,7 +69,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     );
   };
 
-  const handleApply = async (scheme) => {
+  const handleApply = (scheme) => {
     if (!user) {
       alert("Please log in to apply for schemes.");
       return;
@@ -76,29 +82,14 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
       return;
     }
 
-    const confirmApply = window.confirm(
-      `Are you sure you want to submit an application for the scheme: "${scheme.title}"?`
-    );
+    setSelectedSchemeToApply(scheme);
+    setApplyModalOpen(true);
+  };
 
-    if (!confirmApply) return;
-
-    try {
-      const res = await applyForScheme(
-        scheme._id || scheme.id
-      );
-
-      if (res.success) {
-        alert(
-          `Successfully applied for "${scheme.title}". Application ID: ${res.application.applicationId}`
-        );
-      }
-    } catch (err) {
-      alert(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to submit application."
-      );
-    }
+  const handleApplySuccess = (application) => {
+    setApplyModalOpen(false);
+    setSelectedSchemeToApply(null);
+    alert(`Successfully applied! Application ID: ${application.applicationId}`);
   };
 
   const handleToggleSort = () => {
@@ -314,6 +305,13 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
             "Initiating Profile Analyzer..."
           )
         }
+      />
+
+      <SchemeApplyModal 
+        isOpen={applyModalOpen}
+        onClose={() => setApplyModalOpen(false)}
+        scheme={selectedSchemeToApply}
+        onSuccess={handleApplySuccess}
       />
 
     </div>
