@@ -10,7 +10,7 @@ const Notification = require('../models/notification.model');
  */
 const createApplication = async (req, res, next) => {
     try {
-        const { schemeId } = req.body;
+        const { schemeId, documents } = req.body;
         const citizenId = req.user.id;
 
         // 1. Validate scheme exists
@@ -52,6 +52,7 @@ const createApplication = async (req, res, next) => {
             applicant: citizenId,
             scheme: schemeId,
             applicationId,
+            documents: documents || [],
             status: 'Pending'
         });
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { getSchemeById } from '../../services/scheme.service';
 import { applyForScheme } from '../../services/application.service';
+import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import useAuth from '../../hooks/useAuth';
 
 const StandaloneSchemePage = () => {
@@ -12,6 +13,8 @@ const StandaloneSchemePage = () => {
   const [scheme, setScheme] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [selectedSchemeToApply, setSelectedSchemeToApply] = useState(null);
 
   useEffect(() => {
     const fetchScheme = async () => {
@@ -31,7 +34,7 @@ const StandaloneSchemePage = () => {
     fetchScheme();
   }, [id]);
 
-  const handleApply = async (schemeItem) => {
+  const handleApply = (schemeItem) => {
     if (!user) {
       alert("Please log in to apply for schemes.");
       return;
@@ -40,18 +43,15 @@ const StandaloneSchemePage = () => {
       alert(`Only Citizens are allowed to apply for schemes. Your current role is: "${user.role}". Please log in with a Citizen account to submit applications.`);
       return;
     }
-    const confirmApply = window.confirm(`Are you sure you want to submit an application for the scheme: "${schemeItem.title}"?`);
-    if (!confirmApply) return;
+    setSelectedSchemeToApply(schemeItem);
+    setApplyModalOpen(true);
+  };
 
-    try {
-      const res = await applyForScheme(schemeItem._id || schemeItem.id);
-      if (res.success) {
-        alert(`Successfully applied for "${schemeItem.title}". Application ID: ${res.application.applicationId}`);
-        navigate('/dashboard?tab=applications');
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || err.message || "Failed to submit application.");
-    }
+  const handleApplySuccess = (application) => {
+    setApplyModalOpen(false);
+    setSelectedSchemeToApply(null);
+    alert(`Successfully applied! Application ID: ${application.applicationId}`);
+    navigate('/dashboard?tab=applications');
   };
 
   if (loading) {
@@ -77,11 +77,19 @@ const StandaloneSchemePage = () => {
   }
 
   return (
-    <SchemeDetailsPage 
-      scheme={scheme} 
-      onBack={() => navigate('/dashboard?tab=applications')} 
-      onApply={() => handleApply(scheme)}
-    />
+    <>
+      <SchemeDetailsPage 
+        scheme={scheme} 
+        onBack={() => navigate('/dashboard?tab=applications')} 
+        onApply={() => handleApply(scheme)}
+      />
+      <SchemeApplyModal 
+        isOpen={applyModalOpen}
+        onClose={() => setApplyModalOpen(false)}
+        scheme={selectedSchemeToApply}
+        onSuccess={handleApplySuccess}
+      />
+    </>
   );
 };
 
