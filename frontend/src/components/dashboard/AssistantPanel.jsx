@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPaperPlane, FaRobot, FaUser } from 'react-icons/fa';
+import { chat } from '../../services/assistant.service';
+import { useNavigate } from 'react-router';
 
 const AssistantPanel = () => {
   const [messages, setMessages] = useState([
@@ -7,11 +9,15 @@ const AssistantPanel = () => {
       id: 1,
       sender: 'assistant',
       text: 'Hello! I am your AI Policy Assistant. How can I help you discover government benefits today?',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      citations: []
     }
   ]);
   const [inputVal, setInputVal] = useState('');
+  const [sessionId, setSessionId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   const suggestionChips = [
     "PM Kisan status",
@@ -19,9 +25,9 @@ const AssistantPanel = () => {
     "Women welfare schemes"
   ];
 
-  const handleSend = (textToSend) => {
+  const handleSend = async (textToSend) => {
     const val = textToSend || inputVal;
-    if (!val.trim()) return;
+    if (!val.trim() || isLoading) return;
 
     const userMsg = {
       id: Date.now(),
@@ -32,26 +38,32 @@ const AssistantPanel = () => {
 
     setMessages((prev) => [...prev, userMsg]);
     setInputVal('');
+    setIsLoading(true);
 
-    // Simulate AI response after 1 second
-    setTimeout(() => {
-      let aiText = "Thank you for asking. Based on your profile location (Maharashtra) and role, you qualify for several state-specific policies. Let me fetch details...";
-      if (val.toLowerCase().includes('kisan')) {
-        aiText = "Under PM Kisan Samman Nidhi, eligible landholding farmer families receive ₹6,000 per year. Since you are registered in Maharashtra, you are also eligible for the Namo Shetkari Mahasanman Nidhi Yojana providing an additional ₹6,000 yearly.";
-      } else if (val.toLowerCase().includes('scholarship')) {
-        aiText = "For education, the Government of Maharashtra offers Post-Matric Scholarships for OBC/SC/ST students. Ensure you have your Caste Certificate and Income Statement ready to apply.";
-      } else if (val.toLowerCase().includes('women') || val.toLowerCase().includes('welfare')) {
-        aiText = "Several initiatives like the Mahila Samman Saving Certificate and Maharashtra State's Majhi Ladki Bahin Yojana offer high interest savings and monthly assistance to eligible females.";
+    try {
+      const res = await chat(val, sessionId);
+      if (res.success) {
+        setSessionId(res.sessionId);
+        const aiMsg = {
+          id: res.message._id,
+          sender: 'assistant',
+          text: res.message.content,
+          citations: res.message.citations || [],
+          time: new Date(res.message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages((prev) => [...prev, aiMsg]);
       }
-
-      const aiMsg = {
+    } catch (err) {
+      const errorMsg = {
         id: Date.now() + 1,
         sender: 'assistant',
-        text: aiText,
+        text: 'Sorry, I am having trouble connecting to the server. Please try again.',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages((prev) => [...prev, aiMsg]);
-    }, 1000);
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -88,7 +100,21 @@ const AssistantPanel = () => {
                   ? 'bg-white border border-slate-200 text-slate-800 rounded-bl-none' 
                   : 'bg-[#0052cc] text-white rounded-br-none font-medium'
               }`}>
-                <p>{msg.text}</p>
+                <p className="whitespace-pre-wrap">{msg.text}</p>
+                {msg.citations && msg.citations.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Sources</span>
+                    {msg.citations.map((cite, i) => (
+                      <button 
+                        key={i} 
+                        onClick={() => navigate(cite.link)}
+                        className="text-left text-[11px] text-[#0052cc] hover:underline font-medium truncate cursor-pointer bg-transparent border-none p-0"
+                      >
+                        • {cite.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <span className={`block text-[9px] mt-1.5 text-right ${isAi ? 'text-slate-400 font-light' : 'text-blue-200'}`}>
                   {msg.time}
                 </span>
@@ -127,7 +153,8 @@ const AssistantPanel = () => {
           />
           <button
             type="submit"
-            className="w-8 h-8 rounded-lg bg-[#0052cc] hover:bg-[#0047b3] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            disabled={isLoading}
+            className="w-8 h-8 rounded-lg bg-[#0052cc] hover:bg-[#0047b3] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 border-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaPaperPlane className="w-3.5 h-3.5" />
           </button>
