@@ -3,9 +3,11 @@ import { Link } from 'react-router';
 import useAuth from '../hooks/useAuth';
 import { getSchemes } from '../services/scheme.service';
 import Modal from '../components/modals/Modal';
+import { useToast } from '../hooks/useToast';
 
 const LandingPage = () => {
   const { user, handleLogout } = useAuth();
+  const { addToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -64,7 +66,7 @@ const LandingPage = () => {
   const handleContactSubmit = (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
-      alert("Name, Email, and Message are required.");
+      addToast("Name, Email, and Message are required.", 'error');
       return;
     }
     setContactSubmitted(true);

@@ -33,10 +33,12 @@ import {
 } from '../../services/application.service';
 import useAuth from '../../hooks/useAuth';
 import { useNavigate } from 'react-router';
+import { useToast } from '../../hooks/useToast';
 
 const ApprovalsDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   // Database state
   const [items, setItems] = useState([]);
@@ -204,7 +206,7 @@ const ApprovalsDashboard = () => {
     try {
       let res;
       if (action === 'submit') {
-        if (type !== 'Policy') return alert('Only policies supported for submit');
+        if (type !== 'Policy') return addToast('Only policies supported for submit', 'error');
         res = await submitForApproval(id);
       } else if (action === 'approve') {
         if (type === 'Policy') {
@@ -235,25 +237,27 @@ const ApprovalsDashboard = () => {
       
       if (res && res.success) {
         fetchDashboardData();
+        addToast('Action completed successfully.', 'success');
       }
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Action failed');
+      addToast(err.response?.data?.message || err.message || 'Action failed', 'error');
     }
   };
 
   const handleConfirmReject = async () => {
     if (!rejectionReasonText.trim()) {
-      alert("Rejection reason is required.");
+      addToast("Rejection reason is required.", 'error');
       return;
     }
     try {
       const res = await rejectApplication(rejectingItemId, rejectionReasonText);
       if (res.success) {
         setRejectModalOpen(false);
+        addToast('Application rejected successfully.', 'success');
         fetchDashboardData();
       }
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Action failed');
+      addToast(err.response?.data?.message || err.message || 'Action failed', 'error');
     }
   };
 

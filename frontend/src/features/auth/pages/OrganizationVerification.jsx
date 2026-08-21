@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router';
 import { FiUpload } from 'react-icons/fi';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import { uploadDocument } from '../../../services/upload.service';
+import { useToast } from '../../../hooks/useToast';
 
 const OrganizationVerification = () => {
     const navigate = useNavigate();
+    const { addToast } = useToast();
 
     const [formData, setFormData] = useState({
         organizationName: '',
@@ -141,11 +143,11 @@ const OrganizationVerification = () => {
             try {
                 const uploadRes = await uploadDocument(formData.certificate);
                 if (uploadRes.success) {
-                    alert('Organization registration and certificate uploaded successfully!');
+                    addToast('Organization registration and certificate uploaded successfully!', 'success');
                     navigate('/dashboard');
                 }
             } catch (err) {
-                alert(err.response?.data?.message || err.message || 'File upload failed');
+                addToast(err.response?.data?.message || err.message || 'File upload failed', 'error');
             } finally {
                 setIsSubmitting(false);
             }

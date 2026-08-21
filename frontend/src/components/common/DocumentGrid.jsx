@@ -1,7 +1,9 @@
 import React from 'react';
 import { FaFileInvoice, FaDownload } from 'react-icons/fa';
+import { useToast } from '../../hooks/useToast';
 
 const DocumentGrid = ({ documents }) => {
+  const { addToast } = useToast();
   const defaultDocuments = [
     { id: 1, name: "Privacy Notice Template" },
     { id: 2, name: "Cyber Security Audit Form" },
@@ -12,7 +14,7 @@ const DocumentGrid = ({ documents }) => {
   const displayDocs = documents || defaultDocuments;
 
   const handleDownload = (docName) => {
-    alert(`Downloading: ${docName}`);
+    addToast(`Downloading: ${docName}`, 'info');
   };
 
   return (

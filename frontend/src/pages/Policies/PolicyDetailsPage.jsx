@@ -8,8 +8,10 @@ import QuickActionPanel from '../../components/dashboard/QuickActionPanel';
 import RelatedPolicies from './RelatedPolicies';
 import Footer from '../../components/layout/Footer';
 import { savePolicy, removeSavedPolicy, checkSavedPolicy } from '../../services/savedPolicy.service';
+import { useToast } from '../../hooks/useToast';
 
 const PolicyDetailsPage = ({ policy, onBack }) => {
+  const { addToast } = useToast();
   // Map backend fields to frontend UI expectation
   const mappedPolicy = React.useMemo(() => {
     if (!policy) return null;
@@ -44,15 +46,15 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
       }
     } catch (error) {
       console.error("Failed to toggle bookmark:", error);
-      alert("Failed to update bookmark status.");
+      addToast("Failed to update bookmark status.", 'error');
     }
   };
 
   const handleDownloadPDF = () => {
     if (mappedPolicy?.documents?.length > 0) {
-      alert(`Downloading official document for: ${mappedPolicy.title}`);
+      addToast(`Downloading official document for: ${mappedPolicy.title}`, 'info');
     } else {
-      alert("No official PDF available for this policy.");
+      addToast("No official PDF available for this policy.", 'error');
     }
   };
 

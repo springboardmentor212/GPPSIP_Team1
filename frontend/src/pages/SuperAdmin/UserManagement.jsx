@@ -4,12 +4,14 @@ import StatsCard from '../../components/cards/StatsCard';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Modal from '../../components/modals/Modal';
 import { FaSearch, FaEye, FaBan, FaCheck, FaTrash, FaUserShield, FaUserGraduate } from 'react-icons/fa';
+import { useToast } from '../../hooks/useToast';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
+  const { addToast } = useToast();
   
   // Selected user for details
   const [selectedUser, setSelectedUser] = useState(null);
@@ -37,11 +39,11 @@ const UserManagement = () => {
     try {
       const res = await toggleUserStatus(id);
       if (res.success) {
-        alert(res.message);
+        addToast(res.message, 'success');
         fetchUsers();
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update user status.');
+      addToast(err.response?.data?.message || 'Failed to update user status.', 'error');
     }
   };
 
@@ -50,11 +52,11 @@ const UserManagement = () => {
     try {
       const res = await deleteUser(id);
       if (res.success) {
-        alert(res.message);
+        addToast(res.message, 'success');
         fetchUsers();
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete user.');
+      addToast(err.response?.data?.message || 'Failed to delete user.', 'error');
     }
   };
 

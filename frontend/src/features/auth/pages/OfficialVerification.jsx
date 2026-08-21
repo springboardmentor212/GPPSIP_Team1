@@ -4,9 +4,11 @@ import { FaInfoCircle } from 'react-icons/fa';
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import { FiUploadCloud } from 'react-icons/fi';
 import { uploadDocument } from '../../../services/upload.service';
+import { useToast } from '../../../hooks/useToast';
 
 const OfficialVerification = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -125,11 +127,11 @@ const OfficialVerification = () => {
       try {
         const uploadRes = await uploadDocument(formData.idDocument);
         if (uploadRes.success) {
-          alert('Official profile details and document submitted successfully!');
+          addToast('Official profile details and document submitted successfully!', 'success');
           navigate('/dashboard');
         }
       } catch (err) {
-        alert(err.response?.data?.message || err.message || 'File upload failed');
+        addToast(err.response?.data?.message || err.message || 'File upload failed', 'error');
       } finally {
         setIsSubmitting(false);
       }

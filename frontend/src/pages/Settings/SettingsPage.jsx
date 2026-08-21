@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { getAdminSettings, updateAdminSettings } from '../../services/admin.service';
+import { useToast } from '../../hooks/useToast';
 
 const SettingsPage = ({ dbStatus }) => {
   const { user } = useAuth();
   const isSuperAdmin = user && user.role === 'Super Admin';
+  const { addToast } = useToast();
 
   const [platformSettings, setPlatformSettings] = useState({
     platformName: 'PolicyGPT',
@@ -36,10 +38,10 @@ const SettingsPage = ({ dbStatus }) => {
     try {
       const res = await updateAdminSettings(platformSettings);
       if (res.success) {
-        alert(res.message || 'Platform settings updated successfully.');
+        addToast(res.message || 'Platform settings updated successfully.', 'success');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update platform settings.');
+      addToast(err.response?.data?.message || 'Failed to update platform settings.', 'error');
     } finally {
       setSavingSettings(false);
     }

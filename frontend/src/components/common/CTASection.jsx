@@ -1,7 +1,9 @@
 import React from 'react';
 import { FaRobot, FaArrowRight } from 'react-icons/fa';
+import { useToast } from '../../hooks/useToast';
 
 const CTASection = ({ onStartMatching }) => {
+  const { addToast } = useToast();
   return (
     <div className="relative rounded-3xl overflow-hidden shadow-lg border border-blue-500/10 bg-gradient-to-r from-[#0047b3] via-[#0a369d] to-[#082a7a] text-white p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 min-h-[120px] select-none text-left">
       
@@ -22,7 +24,7 @@ const CTASection = ({ onStartMatching }) => {
       {/* Action Button */}
       <div className="relative z-10 shrink-0">
         <button 
-          onClick={onStartMatching || (() => alert("Starting AI Matching Wizard..."))}
+          onClick={onStartMatching || (() => addToast("Starting AI Matching Wizard...", 'info'))}
           className="px-6 py-3 bg-white hover:bg-blue-50 text-[#0a369d] font-black rounded-xl text-xs sm:text-sm shadow-md transition-all duration-200 flex items-center gap-2 cursor-pointer border-none scale-100 hover:scale-102 active:scale-98"
         >
           <FaRobot className="w-4 h-4 text-[#0a369d]" />

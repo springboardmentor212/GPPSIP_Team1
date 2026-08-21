@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { FaRobot, FaPlus, FaRegTrashAlt, FaSearch, FaHistory, FaDownload, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import AssistantPanel from '../../components/dashboard/AssistantPanel';
 import { getSessions, deleteSession, getSession } from '../../services/assistant.service';
+import { useToast } from '../../hooks/useToast';
 
 const AIAssistantPage = () => {
+  const { addToast } = useToast();
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,7 +137,7 @@ const AIAssistantPage = () => {
                 <FaRegBookmark className="w-3 h-3" /> Bookmark
               </button>
               <button 
-                onClick={() => alert("Chat exported successfully!")}
+                onClick={() => addToast("Chat exported successfully!", 'success')}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 hover:text-[#0052cc] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-blue-100"
               >
                 <FaDownload className="w-3 h-3" /> Export

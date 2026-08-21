@@ -10,8 +10,10 @@ import Footer from '../../components/layout/Footer';
 import { FaChevronDown } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth';
 import { getNotifications, markAllAsRead, markAsRead, deleteNotification } from '../../services/notification.service';
+import { useToast } from '../../hooks/useToast';
 
 const NotificationsPage = () => {
+  const { addToast } = useToast();
   const [notifications, setNotifications] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const { user } = useAuth();
@@ -253,8 +255,8 @@ const NotificationsPage = () => {
       <NotificationHeader
         onMarkAllRead={handleMarkAllRead}
         onOpenSettings={() =>
-          alert(
-            "Notification settings configured."
+          addToast(
+            "Notification settings configured.", 'info'
           )
         }
       />
@@ -317,8 +319,8 @@ const NotificationsPage = () => {
           <div className="pt-3 text-center">
             <button
               onClick={() =>
-                alert(
-                  "Loading historical notifications..."
+                addToast(
+                  "Loading historical notifications...", 'info'
                 )
               }
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0052cc] hover:underline cursor-pointer"
@@ -339,11 +341,11 @@ const NotificationsPage = () => {
               selectedNotification
             }
             onOpenPolicy={() =>
-              alert(
+              addToast(
                 `Opening full policy for: ${
                   selectedNotification?.fullTitle ||
                   selectedNotification?.title
-                }`
+                }`, 'info'
               )
             }
             onSave={() =>
@@ -367,8 +369,8 @@ const NotificationsPage = () => {
 
           <RecentActivityTimeline
             onViewFullHistory={() =>
-              alert(
-                "Opening activity timeline history..."
+              addToast(
+                "Opening activity timeline history...", 'info'
               )
             }
           />

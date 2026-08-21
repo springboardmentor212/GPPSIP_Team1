@@ -1,7 +1,9 @@
 import React from 'react';
 import { FaArrowRight } from 'react-icons/fa';
+import { useToast } from '../../hooks/useToast';
 
 const RelatedPolicies = ({ relatedList }) => {
+  const { addToast } = useToast();
   const defaultRelated = [
     {
       id: 101,
@@ -50,7 +52,7 @@ const RelatedPolicies = ({ relatedList }) => {
           Related Policies
         </h3>
         <button
-          onClick={() => alert("Redirecting to Research repository...")}
+          onClick={() => addToast("Redirecting to Research repository...", 'info')}
           className="text-xs font-bold text-[#0052cc] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none"
         >
           <span>View All Research</span>
@@ -63,7 +65,7 @@ const RelatedPolicies = ({ relatedList }) => {
         {displayList.map((item) => (
           <div
             key={item.id}
-            onClick={() => alert(`Opening policy: ${item.title}`)}
+            onClick={() => addToast(`Opening policy: ${item.title}`, 'info')}
             className="bg-white rounded-2xl border border-slate-300 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-blue-200 transition-all duration-350 cursor-pointer flex flex-col justify-between group h-full"
           >
             {/* Category Tag */}
