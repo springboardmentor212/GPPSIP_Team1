@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaPaperPlane, FaRobot, FaUser } from 'react-icons/fa';
-import { chat } from '../../services/assistant.service';
+import { chat, getSession } from '../../services/assistant.service';
 import { useNavigate } from 'react-router';
 
-const AssistantPanel = () => {
+const AssistantPanel = ({ propSessionId, onSessionCreated }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -14,7 +14,7 @@ const AssistantPanel = () => {
     }
   ]);
   const [inputVal, setInputVal] = useState('');
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(propSessionId || null);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
@@ -24,6 +24,26 @@ const AssistantPanel = () => {
     "Scholarship eligibility",
     "Women welfare schemes"
   ];
+
+  // Load existing session messages if propSessionId is provided
+  useEffect(() => {
+    if (propSessionId) {
+      setIsLoading(true);
+      getSession(propSessionId).then(res => {
+        if (res.success && res.messages) {
+          const loadedMessages = res.messages.map(m => ({
+            id: m._id,
+            sender: m.role,
+            text: m.content,
+            citations: m.citations || [],
+            time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }));
+          setMessages(loadedMessages);
+        }
+      }).catch(err => console.error("Failed to load session messages:", err))
+      .finally(() => setIsLoading(false));
+    }
+  }, [propSessionId]);
 
   const handleSend = async (textToSend) => {
     const val = textToSend || inputVal;
@@ -43,7 +63,11 @@ const AssistantPanel = () => {
     try {
       const res = await chat(val, sessionId);
       if (res.success) {
-        setSessionId(res.sessionId);
+        if (!sessionId) {
+          setSessionId(res.sessionId);
+          if (onSessionCreated) onSessionCreated(res.sessionId);
+        }
+        
         const aiMsg = {
           id: res.message._id,
           sender: 'assistant',
@@ -71,7 +95,7 @@ const AssistantPanel = () => {
   }, [messages]);
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-blue-100 shadow-md overflow-hidden flex flex-col h-[520px]">
+    <div className="bg-white rounded-2xl border-2 border-blue-100 shadow-md overflow-hidden flex flex-col h-full min-h-[400px]">
       
       {/* Header section with avatar and status */}
       <div className="p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/20 border-b border-blue-100 flex items-center justify-between">
@@ -89,6 +113,9 @@ const AssistantPanel = () => {
 
       {/* Messages Scrolling Container */}
       <div className="flex-grow p-4 overflow-y-auto space-y-3.5 bg-slate-50/40">
+        {messages.length === 0 && isLoading && (
+          <div className="text-center text-xs text-slate-400 mt-4">Loading messages...</div>
+        )}
         {messages.map((msg) => {
           const isAi = msg.sender === 'assistant';
           return (
@@ -126,17 +153,19 @@ const AssistantPanel = () => {
       </div>
 
       {/* Suggestion Chips */}
-      <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap gap-1.5">
-        {suggestionChips.map((chip, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleSend(chip)}
-            className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-300 hover:text-[#0052cc] text-slate-600 rounded-full text-[10px] font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
-          >
-            {chip}
-          </button>
-        ))}
-      </div>
+      {!propSessionId && messages.length <= 1 && (
+        <div className="p-3 bg-slate-50/80 border-t border-slate-100 flex flex-wrap gap-1.5">
+          {suggestionChips.map((chip, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSend(chip)}
+              className="px-2.5 py-1 bg-white border border-slate-200 hover:border-blue-300 hover:text-[#0052cc] text-slate-600 rounded-full text-[10px] font-bold shadow-xs transition-colors shrink-0 cursor-pointer"
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Input area */}
       <div className="p-3 border-t border-slate-100 bg-white">
@@ -153,7 +182,7 @@ const AssistantPanel = () => {
           />
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !inputVal.trim()}
             className="w-8 h-8 rounded-lg bg-[#0052cc] hover:bg-[#0047b3] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 border-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FaPaperPlane className="w-3.5 h-3.5" />
