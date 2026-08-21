@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes, FaRegCalendarAlt, FaCheck } from 'react-icons/fa';
+import { scheduleReport } from '../../services/report.service';
 
 const ScheduleReportModal = ({ isOpen, onClose, onSaveSchedule }) => {
     const [reportTitle, setReportTitle] = useState('');
@@ -10,14 +11,22 @@ const ScheduleReportModal = ({ isOpen, onClose, onSaveSchedule }) => {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSuccess(true);
-        setTimeout(() => {
-            onSaveSchedule({ reportTitle, frequency, time, department });
-            setIsSuccess(false);
-            onClose();
-        }, 1000);
+        try {
+            const scheduleData = { reportTitle, frequency, time, department };
+            const res = await scheduleReport(scheduleData);
+            if (res.success) {
+                setIsSuccess(true);
+                setTimeout(() => {
+                    if (onSaveSchedule) onSaveSchedule(scheduleData);
+                    setIsSuccess(false);
+                    onClose();
+                }, 1000);
+            }
+        } catch (error) {
+            console.error("Failed to schedule report", error);
+        }
     };
 
     return (
