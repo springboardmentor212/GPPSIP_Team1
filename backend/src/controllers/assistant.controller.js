@@ -40,9 +40,85 @@ const getSession = async (req, res, next) => {
 const chat = async (req, res, next) => {
     try {
         const { message, sessionId } = req.body;
-        
+
         if (!message) {
             return res.status(400).json({ success: false, message: 'Message is required' });
+        }
+
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+
+        // --- TRUE RAG / VECTOR SEARCH IMPLEMENTATION ---
+        
+        // 1. Calculate Cosine Similarity Helper
+        const cosineSimilarity = (vecA, vecB) => {
+            let dotProduct = 0; let normA = 0; let normB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            return (normA === 0 || normB === 0) ? 0 : dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+        };
+
+        // 2. Fetch Embedding for User Query
+        let queryEmbedding = null;
+        if (geminiApiKey) {
+            try {
+                const embedRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'models/text-embedding-004',
+                        content: { parts: [{ text: message }] }
+                    })
+                });
+                const embedData = await embedRes.json();
+                if (embedData.embedding?.values) {
+                    queryEmbedding = embedData.embedding.values;
+                }
+            } catch (err) {
+                console.error("Failed to fetch query embedding:", err);
+            }
+        }
+
+        // 3. Retrieve Context from Database
+        let policies = [];
+        let schemes = [];
+        let chunks = [];
+        const searchRegex = new RegExp(message, 'i');
+        const DocumentChunk = require('../models/documentChunk.model');
+
+        if (queryEmbedding) {
+            // VECTOR SEARCH PATH (Soft in-memory fallback for non-Atlas DBs)
+            
+            // We fetch documents that have embeddings, calculate similarity, and sort.
+            // In a production MongoDB Atlas environment, this would be done directly in DB via $vectorSearch.
+            const allChunks = await DocumentChunk.find({ embedding: { $exists: true, $ne: [] } });
+            
+            // Map and calculate similarity
+            const scoredChunks = allChunks.map(doc => ({
+                doc,
+                score: cosineSimilarity(queryEmbedding, doc.embedding)
+            }));
+            
+            // Sort by score descending and take top 5
+            scoredChunks.sort((a, b) => b.score - a.score);
+            chunks = scoredChunks.slice(0, 5).map(sc => sc.doc);
+
+            // For policies and schemes, since we haven't embedded them yet, fallback to Regex for now
+            policies = await Policy.find({ $or: [{ title: searchRegex }, { description: searchRegex }] }).limit(3);
+            schemes = await Scheme.find({ $or: [{ title: searchRegex }, { description: searchRegex }] }).limit(3);
+
+            // If no vector chunks found, fallback to regex chunks
+            if (chunks.length === 0) {
+                chunks = await DocumentChunk.find({ text: searchRegex }).limit(5);
+            }
+
+        } else {
+            // REGEX FALLBACK PATH (If API Key is missing or embed failed)
+            policies = await Policy.find({ $or: [{ title: searchRegex }, { description: searchRegex }] }).limit(3);
+            schemes = await Scheme.find({ $or: [{ title: searchRegex }, { description: searchRegex }] }).limit(3);
+            chunks = await DocumentChunk.find({ text: searchRegex }).limit(5);
         }
 
         let session;
@@ -60,30 +136,6 @@ const chat = async (req, res, next) => {
             role: 'user',
             content: message
         });
-
-        // Simple RAG-lite implementation: Search Database for keywords
-        const keywords = message.toLowerCase().split(' ').filter(w => w.length > 3);
-        const searchRegex = new RegExp(keywords.join('|'), 'i');
-
-        const policies = await Policy.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex },
-                { content: searchRegex }
-            ]
-        }).limit(3);
-
-        const schemes = await Scheme.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex }
-            ]
-        }).limit(3);
-
-        const DocumentChunk = require('../models/documentChunk.model');
-        const chunks = await DocumentChunk.find({
-            text: searchRegex
-        }).limit(5);
 
         let contextDocs = [];
         let citations = [];
@@ -112,7 +164,7 @@ Your goal is to answer the user's question based strictly on the provided contex
 Always be polite and structured in your response. Do not output raw markdown links or HTML. Keep the response concise but informative.
 `;
 
-        const geminiApiKey = process.env.GEMINI_API_KEY;
+
         let responseContent = "";
 
         if (!geminiApiKey) {
