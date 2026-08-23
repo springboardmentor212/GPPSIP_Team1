@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { protect, authorize } = require('../middlewares/auth.middleware');
+const identifyUser = require('../middlewares/auth.middleware');
+const authorize = require('../middlewares/role.middleware');
 const {
     getAllCirculars,
     getCircularById,
@@ -10,12 +11,12 @@ const {
 } = require('../controllers/circular.controller');
 
 router.route('/')
-    .get(protect, getAllCirculars)
-    .post(protect, authorize('Gov. Official', 'Super Admin'), createCircular);
+    .get(identifyUser, getAllCirculars)
+    .post(identifyUser, authorize(['Gov. Official', 'Super Admin']), createCircular);
 
 router.route('/:id')
-    .get(protect, getCircularById)
-    .put(protect, authorize('Gov. Official', 'Super Admin'), updateCircular)
-    .delete(protect, authorize('Gov. Official', 'Super Admin'), deleteCircular);
+    .get(identifyUser, getCircularById)
+    .put(identifyUser, authorize(['Gov. Official', 'Super Admin']), updateCircular)
+    .delete(identifyUser, authorize(['Gov. Official', 'Super Admin']), deleteCircular);
 
 module.exports = router;
