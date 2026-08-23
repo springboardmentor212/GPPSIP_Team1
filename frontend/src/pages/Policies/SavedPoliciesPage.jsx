@@ -24,7 +24,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
             title: p.title,
             category: p.category,
             description: p.description,
-            lastViewed: new Date().toLocaleDateString(), // Mocked
+            lastViewed: new Date().toLocaleDateString(),
             bookmarkStatus: "Active",
             ministry: p.department || p.category,
             publishedDate: new Date(p.createdAt).toLocaleDateString(),
