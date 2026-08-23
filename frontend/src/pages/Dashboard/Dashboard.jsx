@@ -57,7 +57,7 @@ import {
 import { getAdminStats } from '../../services/admin.service';
 import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
 import { getRecommendations } from '../../services/recommendation.service';
-import { getSavedSchemes, addSavedScheme, removeSavedScheme } from '../../services/savedScheme.service';
+import { getSavedSchemes, saveScheme, removeSavedScheme } from '../../services/savedScheme.service';
 import { useToast } from '../../hooks/useToast';
 
 // Import UI components
@@ -294,7 +294,7 @@ const Dashboard = () => {
       if (isCurrentlySaved) {
         await removeSavedScheme(id);
       } else {
-        await addSavedScheme(id);
+        await saveScheme(id);
       }
       
       const newSaved = [...savedSchemes];

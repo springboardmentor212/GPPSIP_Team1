@@ -7,7 +7,7 @@ import CTASection from '../../components/common/CTASection';
 import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import { getSchemes } from '../../services/scheme.service';
 import { getRecommendations } from '../../services/recommendation.service';
-import { getSavedSchemes, addSavedScheme, removeSavedScheme } from '../../services/savedScheme.service';
+import { getSavedSchemes, saveScheme, removeSavedScheme } from '../../services/savedScheme.service';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { applyForScheme } from '../../services/application.service';
 import useAuth from '../../hooks/useAuth';
@@ -94,7 +94,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
         setBookmarkedIds((prev) => prev.filter((bId) => bId !== id));
         addToast("Scheme removed from saved list", "success");
       } else {
-        await addSavedScheme(id);
+        await saveScheme(id);
         setBookmarkedIds((prev) => [...prev, id]);
         addToast("Scheme saved successfully", "success");
       }
