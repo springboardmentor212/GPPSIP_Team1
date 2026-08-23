@@ -2,7 +2,7 @@ import React from 'react';
 import { FaCheckCircle, FaLaptopCode, FaLeaf, FaShieldAlt, FaMicroscope, FaBuilding, FaCalendarAlt, FaFileDownload } from 'react-icons/fa';
 import Footer from '../../components/layout/Footer';
 
-const SchemeDetailsPage = ({ scheme, onBack, onApply }) => {
+const SchemeDetailsPage = ({ scheme, onBack, onApply, onSave, isSaved }) => {
   if (!scheme) return null;
 
   // Dynamic icon selector based on title or category (copied from SchemeCard)
@@ -158,6 +158,13 @@ const SchemeDetailsPage = ({ scheme, onBack, onApply }) => {
                     className="w-full flex items-center justify-center gap-2 bg-[#0052cc] hover:bg-[#0047b3] text-white py-3 px-4 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-500/20 border-none cursor-pointer"
                   >
                     Apply for Scheme
+                  </button>
+                  <button 
+                    onClick={onSave}
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all border cursor-pointer ${isSaved ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'}`}
+                  >
+                    <FaFileDownload className={isSaved ? 'text-emerald-500' : ''} /> 
+                    {isSaved ? 'Saved / Bookmarked' : 'Save Scheme'}
                   </button>
                   <button className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 py-3 px-4 rounded-xl text-sm font-bold transition-all border border-slate-200 cursor-pointer">
                     <FaFileDownload /> Download Guidelines
