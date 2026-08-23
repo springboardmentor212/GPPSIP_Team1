@@ -48,12 +48,42 @@ const uploadFile = async (req, res, next) => {
         // Generate virtual URL for frontend usage
         const fileUrl = `/uploads/${req.file.filename}`;
         
+        let extractedText = '';
+        if (req.file.mimetype === 'application/pdf') {
+            try {
+                const pdfParse = require('pdf-parse');
+                const dataBuffer = fs.readFileSync(req.file.path);
+                const data = await pdfParse(dataBuffer);
+                extractedText = data.text;
+                
+                // Simple chunking (by paragraphs/newlines)
+                if (extractedText) {
+                    const DocumentChunk = require('../models/documentChunk.model');
+                    const chunks = extractedText.split(/\n\s*\n/); // Split by empty lines
+                    
+                    const chunkDocs = chunks
+                        .filter(c => c.trim().length > 20)
+                        .map(c => ({
+                            documentUrl: fileUrl,
+                            text: c.trim()
+                        }));
+                    
+                    if (chunkDocs.length > 0) {
+                        await DocumentChunk.insertMany(chunkDocs);
+                    }
+                }
+            } catch (parseErr) {
+                console.error("PDF Parsing failed:", parseErr);
+            }
+        }
+        
         res.status(200).json({
             success: true,
             message: 'File uploaded successfully',
             fileUrl,
             originalName: req.file.originalname,
-            size: req.file.size
+            size: req.file.size,
+            indexed: !!extractedText
         });
     } catch (error) {
         next(error);

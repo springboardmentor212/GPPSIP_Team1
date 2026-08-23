@@ -34,6 +34,7 @@ const assistantRouter = require('./routes/assistant.routes');
 const savedPolicyRouter = require('./routes/savedPolicy.routes');
 const analyticsRouter = require('./routes/analytics.routes');
 const uploadRouter = require('./routes/upload.routes');
+const circularRouter = require('./routes/circular.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
@@ -52,6 +53,7 @@ app.use('/api/assistant', assistantRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/saved-policies', savedPolicyRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/circulars', circularRouter);
 /* health check route */
 app.get('/health', (req, res) => {
   res.status(200).json({

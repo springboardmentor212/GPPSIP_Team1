@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const policySchema = new mongoose.Schema({
   title: { type: String, required: [true, 'Policy title is required'], trim: true },
   description: { type: String, required: [true, 'Policy description is required'], trim: true },
+  content: { type: String, default: '', trim: true },
+  documentUrl: { type: String, default: '' },
   department: { type: String, required: [true, 'Department is required'], trim: true },
   category: {
     type: String,

@@ -61,6 +61,8 @@ const EligibilityPage = () => {
     }
   };
 
+  const [bookmarkedIds, setBookmarkedIds] = useState([]);
+
   const handleBookmarkToggle = (id) => {
     setBookmarkedIds(prev => 
       prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]

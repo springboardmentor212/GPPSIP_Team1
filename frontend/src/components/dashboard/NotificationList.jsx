@@ -1,11 +1,39 @@
-import React, { useState } from 'react';
-import { FaBell, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaBell, FaInfoCircle, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import useAuth from '../../hooks/useAuth';
+import { getNotifications, markAllAsRead } from '../../services/notification.service';
 
 const NotificationList = ({ applications = [] }) => {
   const { user } = useAuth();
-  
-  const getCitizenNotifications = () => {
+  const [apiNotifications, setApiNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await getNotifications();
+        if (res.success && Array.isArray(res.notifications)) {
+          const mapped = res.notifications.slice(0, 5).map(n => ({
+            id: n._id,
+            title: n.title || 'Notification',
+            text: n.message || n.body || '',
+            time: new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+            type: n.category === 'success' || n.category === 'approval' ? 'success' : 'info'
+          }));
+          setApiNotifications(mapped);
+        }
+      } catch (err) {
+        // API may fail if not logged in or backend down — fall back to application-based notifications
+        console.error('Notifications API unavailable:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  // Build citizen notifications from their application statuses
+  const getCitizenAppNotifications = () => {
     const filteredApps = applications.filter(a => a.status === 'Approved' || a.status === 'Rejected');
     return filteredApps.map((app, idx) => {
       const isApproved = app.status === 'Approved';
@@ -23,26 +51,17 @@ const NotificationList = ({ applications = [] }) => {
     });
   };
 
+  // Merge API notifications with citizen app notifications, deduplicate
   const isCitizen = user && user.role === 'Citizen';
-  const notifications = isCitizen ? getCitizenNotifications() : [
-    {
-      id: 1,
-      title: "Application Approved",
-      text: "Your application for 'Atal Pension Yojana' has been successfully processed.",
-      time: "2 hours ago",
-      type: "success"
-    },
-    {
-      id: 2,
-      title: "New Scheme Alert",
-      text: "A new solar subsidy scheme has been launched for small-scale farmers in your region.",
-      time: "Yesterday, 4:30 PM",
-      type: "info"
-    }
-  ];
+  const appNotifications = isCitizen ? getCitizenAppNotifications() : [];
+  const notifications = [...apiNotifications, ...appNotifications].slice(0, 5);
 
-  const handleMarkAllRead = () => {
-    // Read-only/clear placeholder for mock list
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      console.error('Failed to mark notifications as read:', err);
+    }
   };
 
   const getIcon = (type) => {
@@ -80,7 +99,11 @@ const NotificationList = ({ applications = [] }) => {
 
       {/* Notifications List */}
       <div className="flex-grow space-y-4">
-        {notifications.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <FaSpinner className="animate-spin text-[#0052cc] w-5 h-5" />
+          </div>
+        ) : notifications.length > 0 ? (
           notifications.map((item, idx) => (
             <div key={item.id}>
               <div className="flex items-start gap-4">
