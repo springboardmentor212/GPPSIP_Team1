@@ -161,7 +161,7 @@ const ProfilePage = () => {
 
       const response = await updateProfileSettings(user.email, updatedFields);
       if (response.success) {
-        // Mock update the global AuthContext user name and email
+        // Update the local User state from form
         setUser(prev => ({
           ...prev,
           fullName: fullName.trim(),
