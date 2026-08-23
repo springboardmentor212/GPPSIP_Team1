@@ -80,6 +80,11 @@ const chat = async (req, res, next) => {
             ]
         }).limit(3);
 
+        const DocumentChunk = require('../models/documentChunk.model');
+        const chunks = await DocumentChunk.find({
+            text: searchRegex
+        }).limit(5);
+
         let contextDocs = [];
         let citations = [];
 
@@ -92,10 +97,15 @@ const chat = async (req, res, next) => {
             contextDocs.push(`Scheme: ${s.title}\nDescription: ${s.description}\n`);
             citations.push({ title: s.title, link: `/schemes/${s._id}`, id: s._id });
         });
+        
+        chunks.forEach(c => {
+            contextDocs.push(`Document Excerpt: "...${c.text.substring(0, 300)}..."\n`);
+            citations.push({ title: 'Uploaded Document', link: c.documentUrl, id: c._id });
+        });
 
         let contextString = contextDocs.length > 0 
-            ? `Here is the relevant context from the database:\n\n${contextDocs.join('\n')}\n\n`
-            : "No specific policies or schemes were found in the database for this query.\n\n";
+            ? `Here is the relevant context from the database and uploaded documents:\n\n${contextDocs.join('\n')}\n\n`
+            : "No specific policies, schemes, or documents were found for this query.\n\n";
 
         const systemPrompt = `You are PolicyGPT, a helpful and professional AI assistant for a Government Policy & Public Scheme Intelligence Platform.
 Your goal is to answer the user's question based strictly on the provided context. If the answer is not in the context, do not make up information, but answer as best as you can in a general helpful manner.

@@ -7,6 +7,7 @@ import OrganizationVerification from "./features/auth/pages/OrganizationVerifica
 import Dashboard from "./pages/Dashboard/Dashboard";
 import StandalonePolicyPage from "./pages/Policies/StandalonePolicyPage";
 import StandaloneSchemePage from "./pages/Schemes/StandaloneSchemePage";
+import CircularsPage from "./pages/Circulars/CircularsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import useAuth from "./hooks/useAuth";
 
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
     {
         path: "/scheme/:id",
         element: <StandaloneSchemePage />,
+    },
+    {
+        path: "/circulars",
+        element: <CircularsPage />,
     },
     {
         path: "*",

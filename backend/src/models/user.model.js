@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema({
     default: 'Citizen',
     required: [true, 'Role is required']
   },
+  occupation: { type: String, default: '' },
+  education: { type: String, default: '' },
+  income: { type: Number, default: 0 },
+  interests: [{ type: String }],
   isActive: {
     type: Boolean,
     default: true

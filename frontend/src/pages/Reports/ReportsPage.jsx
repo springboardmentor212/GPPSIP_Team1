@@ -20,10 +20,54 @@ const ReportsPage = () => {
     const [period, setPeriod] = useState('30d');
     const [category, setCategory] = useState('all');
     const [notificationToast, setNotificationToast] = useState(null);
-
     const showToast = (msg) => {
         setNotificationToast(msg);
         setTimeout(() => setNotificationToast(null), 3500);
+    };
+
+    const handleExport = async (format) => {
+        showToast(`Preparing ${format} export...`);
+        try {
+            const { getDepartmentAnalytics, getKPIs } = await import('../../services/analytics.service');
+            const { downloadPDF, downloadExcel } = await import('../../services/export.service');
+            
+            const res = await getDepartmentAnalytics(period);
+            const kpiRes = await getKPIs(period);
+            
+            if (res.success && Array.isArray(res.departments)) {
+                const data = res.departments;
+                
+                if (format === 'excel') {
+                    const excelData = data.map(d => ({
+                        'Rank': d.rank,
+                        'Department': d.name,
+                        'Policies': d.policies,
+                        'Schemes': d.schemes,
+                        'Approval Rate (%)': d.approval,
+                        'Citizen Reach': d.reach,
+                        'Avg Processing (Days)': d.avgProcessDays
+                    }));
+                    downloadExcel('Department Performance', excelData, 'PolicyGPT_Analytics');
+                    showToast('Excel download started');
+                } else {
+                    const headers = ['Rank', 'Department', 'Policies', 'Schemes', 'Approval Rate', 'Reach', 'Avg Days'];
+                    const pdfData = data.map(d => [
+                        d.rank,
+                        d.name,
+                        d.policies,
+                        d.schemes,
+                        `${d.approval}%`,
+                        d.reach,
+                        d.avgProcessDays
+                    ]);
+                    downloadPDF('PolicyGPT Analytics Report', headers, pdfData, 'PolicyGPT_Analytics');
+                    showToast('PDF download started');
+                }
+            }
+        } catch (err) {
+            console.error('Export failed:', err);
+            showToast('Export failed. Please try again.');
+        }
     };
 
     return (
@@ -39,8 +83,8 @@ const ReportsPage = () => {
 
             {/* 1. Header */}
             <AnalyticsHeader
-                onExport={() => showToast('Exporting analytics data...')}
-                onGenerateReport={() => showToast('Generating Department Performance Report...')}
+                onExport={() => handleExport('excel')}
+                onGenerateReport={() => handleExport('pdf')}
             />
 
             {/* 2. Filter Bar */}

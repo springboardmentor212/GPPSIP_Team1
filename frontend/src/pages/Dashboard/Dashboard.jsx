@@ -55,7 +55,7 @@ import {
   getPendingApplications
 } from '../../services/application.service';
 import { getAdminStats } from '../../services/admin.service';
-import { savePolicy, removeSavedPolicy } from '../../services/savedPolicy.service';
+import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
 import { useToast } from '../../hooks/useToast';
 
 // Import UI components
@@ -172,6 +172,9 @@ const Dashboard = () => {
           rejectedApplications: 0
         };
 
+        let savedState = [false, false];
+        const recommendations = polRes.policies?.slice(0, 2) || [];
+
         if (user) {
           if (user.role === 'Citizen') {
             const appRes = await getMyApplications().catch(() => ({
@@ -219,13 +222,25 @@ const Dashboard = () => {
               adminStats = adminRes.stats;
             }
           }
+          
+          // Fetch accurate bookmark status for recommendations
+          try {
+            const savedRes = await getSavedPolicies();
+            if (savedRes.success && Array.isArray(savedRes.policies)) {
+              const savedIds = new Set(savedRes.policies.map(p => p._id));
+              savedState = recommendations.map(p => savedIds.has(p._id));
+            }
+          } catch (e) {
+            console.error('Failed to load bookmark statuses:', e);
+          }
         }
 
+        setSavedSchemes(savedState);
         setStats({
           policies: polRes.policies?.length || 0,
           schemes: schRes.schemes?.length || 0,
           applications: appCount,
-          recommendations: polRes.policies?.slice(0, 2) || [],
+          recommendations,
           citizen: citizenStats,
           admin: adminStats
         });
