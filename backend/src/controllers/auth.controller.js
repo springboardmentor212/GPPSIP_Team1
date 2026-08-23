@@ -205,9 +205,49 @@ const getMeController = async (req, res, next) => {
     }
 };
 
+/**
+ * @route POST /api/auth/change-password
+ * @desc Change user password
+ * @access Private
+ */
+const changePasswordController = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Please provide current and new password' });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: 'New password must be at least 8 characters long' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: 'Incorrect current password' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Password updated successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     registerController,
     loginController,
     logoutController,
-    getMeController
+    getMeController,
+    changePasswordController
 };

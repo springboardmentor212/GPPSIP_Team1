@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerController, loginController, logoutController, getMeController } = require('../controllers/auth.controller');
+const { registerController, loginController, logoutController, getMeController, changePasswordController } = require('../controllers/auth.controller');
 const identifyUser = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { registerSchema, loginSchema } = require('../validations/auth.validation');
@@ -33,5 +33,12 @@ authRouter.post('/logout', logoutController);
  * @access Private
  */
 authRouter.get('/me', identifyUser, getMeController);
+
+/**
+ * @route POST /api/auth/change-password
+ * @desc Change user password
+ * @access Private
+ */
+authRouter.post('/change-password', identifyUser, changePasswordController);
 
 module.exports = authRouter;
