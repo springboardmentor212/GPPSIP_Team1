@@ -49,9 +49,10 @@ const getSavedPolicies = async (req, res, next) => {
         const policies = savedPolicies
             .filter(sp => sp.policy !== null)
             .map(sp => ({
-                _id: sp._id,
-                savedAt: sp.createdAt,
-                ...sp.policy.toObject()
+                ...sp.policy.toObject(),
+                _id: sp.policy._id,
+                savedPolicyId: sp._id,
+                savedAt: sp.createdAt
             }));
 
         res.status(200).json({ success: true, policies });
