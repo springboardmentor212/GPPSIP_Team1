@@ -18,6 +18,8 @@ const StandaloneSchemePage = () => {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [selectedSchemeToApply, setSelectedSchemeToApply] = useState(null);
 
+  const [isSaved, setIsSaved] = useState(false);
+
   useEffect(() => {
     const fetchScheme = async () => {
       try {
@@ -33,8 +35,22 @@ const StandaloneSchemePage = () => {
         setLoading(false);
       }
     };
+    
+    const checkSaved = async () => {
+      if (user) {
+        try {
+          const { checkSavedScheme } = await import('../../services/savedScheme.service');
+          const res = await checkSavedScheme(id);
+          setIsSaved(res.isSaved);
+        } catch (e) {
+          console.error("Failed to check saved scheme status:", e);
+        }
+      }
+    };
+
     fetchScheme();
-  }, [id]);
+    checkSaved();
+  }, [id, user]);
 
   const handleApply = (schemeItem) => {
     if (!user) {
@@ -47,6 +63,28 @@ const StandaloneSchemePage = () => {
     }
     setSelectedSchemeToApply(schemeItem);
     setApplyModalOpen(true);
+  };
+
+  const handleSaveToggle = async () => {
+    if (!user) {
+      addToast("Please log in to save schemes.", 'error');
+      return;
+    }
+    try {
+      const { saveScheme, removeSavedScheme } = await import('../../services/savedScheme.service');
+      if (isSaved) {
+        await removeSavedScheme(id);
+        setIsSaved(false);
+        addToast("Scheme removed from saved list.", 'success');
+      } else {
+        await saveScheme(id);
+        setIsSaved(true);
+        addToast("Scheme saved successfully.", 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to update bookmark status.", 'error');
+    }
   };
 
   const handleApplySuccess = (application) => {
@@ -84,6 +122,8 @@ const StandaloneSchemePage = () => {
         scheme={scheme} 
         onBack={() => navigate('/dashboard?tab=applications')} 
         onApply={() => handleApply(scheme)}
+        onSave={handleSaveToggle}
+        isSaved={isSaved}
       />
       <SchemeApplyModal 
         isOpen={applyModalOpen}
