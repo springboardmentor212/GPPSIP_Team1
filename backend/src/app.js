@@ -19,6 +19,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 /* require routes */
 const authRouter = require('./routes/auth.routes');
+const profileRouter = require('./routes/profile.routes');
 const policyRouter = require('./routes/policy.routes');
 const schemeRouter = require('./routes/scheme.routes');
 const approvalRouter = require('./routes/approval.routes');
@@ -32,12 +33,14 @@ const reportRouter = require('./routes/report.routes');
 const adminRouter = require('./routes/admin.routes');
 const assistantRouter = require('./routes/assistant.routes');
 const savedPolicyRouter = require('./routes/savedPolicy.routes');
+const savedSchemeRouter = require('./routes/savedScheme.routes');
 const analyticsRouter = require('./routes/analytics.routes');
 const uploadRouter = require('./routes/upload.routes');
 const circularRouter = require('./routes/circular.routes');
 
 /* using routes */
 app.use('/api/auth', authRouter);
+app.use('/api/profile', profileRouter);
 app.use('/api/policies', policyRouter);
 app.use('/api/policies', approvalRouter);
 app.use('/api/schemes', schemeRouter);
@@ -52,6 +55,7 @@ app.use('/api/reports', reportRouter);
 app.use('/api/assistant', assistantRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/saved-policies', savedPolicyRouter);
+app.use('/api/saved-schemes', savedSchemeRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/circulars', circularRouter);
 /* health check route */
