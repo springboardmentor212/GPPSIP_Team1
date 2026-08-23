@@ -52,6 +52,35 @@ const AIAssistantPage = () => {
     s.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleExportChat = async () => {
+    if (!activeSessionId) return;
+    try {
+      addToast("Preparing export...", "info");
+      const res = await getSession(activeSessionId);
+      if (res.success && res.messages) {
+        const textContent = res.messages.map(m => {
+          const role = m.role === 'assistant' ? 'PolicyGPT' : 'You';
+          const time = new Date(m.timestamp).toLocaleString();
+          return `[${time}] ${role}:\n${m.content}\n`;
+        }).join('\n----------------------------------------\n\n');
+        
+        const blob = new Blob([textContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat_export_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        addToast("Chat exported successfully!", "success");
+      }
+    } catch (err) {
+      console.error(err);
+      addToast("Failed to export chat", "error");
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-slate-300 overflow-hidden flex flex-col md:flex-row h-[750px] shadow-sm">
       
@@ -137,7 +166,7 @@ const AIAssistantPage = () => {
                 <FaRegBookmark className="w-3 h-3" /> Bookmark
               </button>
               <button 
-                onClick={() => addToast("Chat exported successfully!", 'success')}
+                onClick={handleExportChat}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-slate-500 hover:text-[#0052cc] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-blue-100"
               >
                 <FaDownload className="w-3 h-3" /> Export
