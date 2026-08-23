@@ -6,6 +6,8 @@ import SchemeCard from '../../components/cards/SchemeCard';
 import CTASection from '../../components/common/CTASection';
 import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import { getSchemes } from '../../services/scheme.service';
+import { getRecommendations } from '../../services/recommendation.service';
+import { getSavedSchemes, addSavedScheme, removeSavedScheme } from '../../services/savedScheme.service';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { applyForScheme } from '../../services/application.service';
 import useAuth from '../../hooks/useAuth';
@@ -38,7 +40,24 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     setError(null);
 
     try {
-      const data = await getSchemes();
+      // Fetch user's saved schemes first
+      if (user) {
+        try {
+          const savedRes = await getSavedSchemes();
+          if (savedRes.success) {
+            setBookmarkedIds(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
+          }
+        } catch (err) {
+          console.error("Failed to load saved schemes", err);
+        }
+      }
+
+      let data;
+      if (user && user.role === 'Citizen') {
+        data = await getRecommendations();
+      } else {
+        data = await getSchemes();
+      }
 
       if (data.success && Array.isArray(data.schemes)) {
         setSchemes(data.schemes);
@@ -61,14 +80,27 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
 
   useEffect(() => {
     fetchSchemesData();
-  }, []);
+  }, [user]);
 
-  const handleBookmarkToggle = (id) => {
-    setBookmarkedIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((bId) => bId !== id)
-        : [...prev, id]
-    );
+  const handleBookmarkToggle = async (id) => {
+    if (!user) {
+      addToast("Please log in to save schemes.", "info");
+      return;
+    }
+    
+    try {
+      if (bookmarkedIds.includes(id)) {
+        await removeSavedScheme(id);
+        setBookmarkedIds((prev) => prev.filter((bId) => bId !== id));
+        addToast("Scheme removed from saved list", "success");
+      } else {
+        await addSavedScheme(id);
+        setBookmarkedIds((prev) => [...prev, id]);
+        addToast("Scheme saved successfully", "success");
+      }
+    } catch (error) {
+      addToast(error.message || "Failed to update saved scheme", "error");
+    }
   };
 
   const handleApply = (scheme) => {

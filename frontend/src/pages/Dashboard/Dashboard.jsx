@@ -56,6 +56,8 @@ import {
 } from '../../services/application.service';
 import { getAdminStats } from '../../services/admin.service';
 import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
+import { getRecommendations } from '../../services/recommendation.service';
+import { getSavedSchemes, addSavedScheme, removeSavedScheme } from '../../services/savedScheme.service';
 import { useToast } from '../../hooks/useToast';
 
 // Import UI components
@@ -173,7 +175,7 @@ const Dashboard = () => {
         };
 
         let savedState = [false, false];
-        const recommendations = polRes.policies?.slice(0, 2) || [];
+        let recommendations = [];
 
         if (user) {
           if (user.role === 'Citizen') {
@@ -201,6 +203,16 @@ const Dashboard = () => {
             citizenStats.list = apps;
 
             appCount = apps.length;
+            
+            // Load Recommendations for Citizen
+            try {
+              const recRes = await getRecommendations();
+              if (recRes.success) {
+                recommendations = recRes.schemes.slice(0, 2);
+              }
+            } catch (e) {
+              console.error("Failed to load recommendations:", e);
+            }
           } else if (
             user.role === 'Gov. Official'
           ) {
@@ -212,6 +224,8 @@ const Dashboard = () => {
             }));
 
             appCount = appRes.applications?.length || 0;
+            // Provide fallback recommendations for officials based on schemes
+            recommendations = schRes.schemes?.slice(0, 2) || [];
           } else if (user.role === 'Super Admin') {
             const adminRes = await getAdminStats().catch(() => ({
               success: true,
@@ -221,13 +235,14 @@ const Dashboard = () => {
             if (adminRes.success && adminRes.stats) {
               adminStats = adminRes.stats;
             }
+            recommendations = schRes.schemes?.slice(0, 2) || [];
           }
           
-          // Fetch accurate bookmark status for recommendations
+          // Fetch accurate bookmark status for recommendations (which are Schemes now)
           try {
-            const savedRes = await getSavedPolicies();
-            if (savedRes.success && Array.isArray(savedRes.policies)) {
-              const savedIds = new Set(savedRes.policies.map(p => p._id));
+            const savedRes = await getSavedSchemes();
+            if (savedRes.success && Array.isArray(savedRes.savedSchemes)) {
+              const savedIds = new Set(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
               savedState = recommendations.map(p => savedIds.has(p._id));
             }
           } catch (e) {
@@ -269,23 +284,26 @@ const Dashboard = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const toggleSaved = async (idx, policyId) => {
+  const handleToggleSave = async (idx, id) => {
     try {
-      const currentlySaved = savedSchemes[idx];
-      if (currentlySaved) {
-        await removeSavedPolicy(policyId);
-        addToast('Policy removed from saved list.', 'success');
-      } else {
-        await savePolicy(policyId);
-        addToast('Policy saved successfully!', 'success');
+      if (!user) {
+        addToast("Please log in to save schemes", "error");
+        return;
       }
-      setSavedSchemes((prev) => {
-        const next = [...prev];
-        next[idx] = !next[idx];
-        return next;
-      });
+      const isCurrentlySaved = savedSchemes[idx];
+      if (isCurrentlySaved) {
+        await removeSavedScheme(id);
+      } else {
+        await addSavedScheme(id);
+      }
+      
+      const newSaved = [...savedSchemes];
+      newSaved[idx] = !isCurrentlySaved;
+      setSavedSchemes(newSaved);
+      
+      addToast(isCurrentlySaved ? "Removed from saved" : "Saved successfully", "success");
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to save policy.', 'error');
+      addToast("Failed to update saved status", "error");
     }
   };
 
@@ -700,26 +718,26 @@ const Dashboard = () => {
                       <div className="flex flex-col gap-5">
 
                         {stats.recommendations.map(
-                          (policy, idx) => (
+                          (scheme, idx) => (
                             <RecommendationCard
                               key={
-                                policy._id || idx
+                                scheme._id || idx
                               }
-                              title={policy.title}
-                              ministry={policy.department || policy.category}
-                              matchPercentage="New"
-                              eligibilityTag="Read More"
+                              title={scheme.title}
+                              ministry={scheme.department || scheme.category}
+                              matchPercentage={scheme.matchPercentage || "90"}
+                              eligibilityTag={scheme.eligibilityTag || "Eligible"}
                               description={
-                                policy.description
+                                scheme.description
                               }
                               isSaved={
                                 savedSchemes[idx]
                               }
                               onSave={() =>
-                                toggleSaved(idx, policy._id)
+                                handleToggleSave(idx, scheme._id)
                               }
                               onApply={() =>
-                                setActiveTab('policy-details')
+                                setActiveTab('schemes')
                               }
                             />
                           )
