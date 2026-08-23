@@ -116,8 +116,19 @@ Always be polite and structured in your response. Do not output raw markdown lin
         let responseContent = "";
 
         if (!geminiApiKey) {
-            responseContent = "I'm PolicyGPT. (Error: GEMINI_API_KEY is missing in the backend environment. Please configure it to enable the full AI capabilities). " + 
-                (contextDocs.length > 0 ? "However, here is what I found in the database:\n\n" + contextDocs.join('\n') : "I couldn't find any resources for your query.");
+            if (contextDocs.length > 0) {
+                responseContent = "I am operating in **Local Search Mode** because my AI core is currently offline. However, I searched the database and found the following relevant information for your query:\n\n";
+                
+                // Format the found documents nicely
+                const formattedDocs = contextDocs.map((doc, idx) => {
+                    return `### Result ${idx + 1}\n${doc.trim()}`;
+                }).join('\n\n---\n\n');
+                
+                responseContent += formattedDocs;
+                responseContent += "\n\n*(Please configure `GEMINI_API_KEY` in the backend environment to enable full conversational AI capabilities).*";
+            } else {
+                responseContent = "I'm PolicyGPT. I am currently operating in **Local Search Mode**, and unfortunately, I couldn't find any resources matching your query in the database.\n\n*(Please configure `GEMINI_API_KEY` in the backend environment to enable full conversational AI capabilities).*";
+            }
         } else {
             // Call Gemini API via native fetch
             try {
