@@ -50,6 +50,9 @@ const ProfilePage = () => {
   const [organization, setOrganization] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [bio, setBio] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [education, setEducation] = useState('');
+  const [income, setIncome] = useState('');
 
   // Interests state
   const [interestInput, setInterestInput] = useState('');
@@ -84,6 +87,9 @@ const ProfilePage = () => {
         setOrganization(prof.organization || '');
         setJobTitle(prof.jobTitle || '');
         setBio(prof.bio || '');
+        setOccupation(prof.occupation || '');
+        setEducation(prof.education || '');
+        setIncome(prof.income || '');
         setInterests(prof.interests || []);
       }
     } catch (err) {
@@ -147,6 +153,9 @@ const ProfilePage = () => {
         organization,
         jobTitle,
         bio,
+        occupation,
+        education,
+        income: Number(income) || 0,
         interests
       };
 
@@ -461,6 +470,30 @@ const ProfilePage = () => {
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
                     placeholder="Enter professional role"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <InputField
+                    label="Occupation"
+                    name="occupation"
+                    value={occupation}
+                    onChange={(e) => setOccupation(e.target.value)}
+                    placeholder="E.g., Farmer, Student, etc."
+                  />
+                  <InputField
+                    label="Education Level"
+                    name="education"
+                    value={education}
+                    onChange={(e) => setEducation(e.target.value)}
+                    placeholder="E.g., High School, B.Tech"
+                  />
+                  <InputField
+                    label="Annual Income (₹)"
+                    name="income"
+                    type="number"
+                    value={income}
+                    onChange={(e) => setIncome(e.target.value)}
+                    placeholder="E.g., 250000"
                   />
                 </div>
                 
