@@ -49,9 +49,10 @@ const getSavedSchemes = async (req, res, next) => {
         const schemes = savedSchemes
             .filter(ss => ss.scheme !== null)
             .map(ss => ({
-                _id: ss._id,
-                savedAt: ss.createdAt,
-                ...ss.scheme.toObject()
+                ...ss.scheme.toObject(),
+                _id: ss.scheme._id,
+                savedSchemeId: ss._id,
+                savedAt: ss.createdAt
             }));
 
         res.status(200).json({ success: true, schemes });
