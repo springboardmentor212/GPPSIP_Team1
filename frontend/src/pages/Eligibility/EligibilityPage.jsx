@@ -4,8 +4,7 @@ import FormCard from '../../components/common/FormCard';
 import EligibilityForm from '../../components/forms/EligibilityForm';
 import NextButton from '../../components/common/NextButton';
 import SchemeCard from '../../components/cards/SchemeCard';
-import { checkSchemeEligibility } from '../../services/eligibility.service';
-import { getSchemes } from '../../services/scheme.service';
+import { getRecommendations } from '../../services/recommendation.service';
 import { FaChevronLeft, FaSearch, FaCheckCircle, FaTimesCircle, FaFileAlt } from 'react-icons/fa';
 import { useToast } from '../../hooks/useToast';
 
@@ -26,25 +25,7 @@ const EligibilityPage = () => {
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [eligibilityResult, setEligibilityResult] = useState(null);
-  
-  const [schemes, setSchemes] = useState([]);
-  const [selectedSchemeId, setSelectedSchemeId] = useState('');
-
-  // Fetch schemes on mount
-  React.useEffect(() => {
-    const fetchSchemes = async () => {
-      try {
-        const res = await getSchemes();
-        if (res.success && Array.isArray(res.schemes)) {
-          setSchemes(res.schemes);
-        }
-      } catch (err) {
-        console.error("Failed to load schemes for eligibility check", err);
-      }
-    };
-    fetchSchemes();
-  }, []);
+  const [recommendedSchemes, setRecommendedSchemes] = useState([]);
 
   // Handles input values and dependent state resets
   const handleInputChange = (e) => {
@@ -71,10 +52,6 @@ const EligibilityPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!selectedSchemeId) {
-      newErrors.scheme = "Please select a scheme to verify eligibility against";
-    }
 
     // Validate Age
     if (!formData.age) {
@@ -136,15 +113,12 @@ const EligibilityPage = () => {
         disabilityStatus: formData.disabilityStatus === 'Yes' // Convert to boolean
       };
 
-      const response = await checkSchemeEligibility(selectedSchemeId, mappedData);
+      const response = await getRecommendations(mappedData);
       if (response.success) {
-        setEligibilityResult({
-          eligible: response.eligible,
-          failedCriteria: response.failedCriteria || []
-        });
+        setRecommendedSchemes(response.schemes);
         setStep(2);
       } else {
-        addToast(response.message || "Failed to calculate eligibility.", 'error');
+        addToast("Failed to fetch recommendations.", 'error');
       }
     } catch (error) {
       console.error(error);
@@ -170,29 +144,6 @@ const EligibilityPage = () => {
         >
           <div className="space-y-6">
             
-            {/* Scheme Selection */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">
-                Target Scheme *
-              </label>
-              <select
-                value={selectedSchemeId}
-                onChange={(e) => {
-                  setSelectedSchemeId(e.target.value);
-                  if (errors.scheme) setErrors(prev => ({...prev, scheme: ''}));
-                }}
-                className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-bold bg-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/10 cursor-pointer ${
-                  errors.scheme ? 'border-rose-400 focus:border-rose-400 text-rose-700' : 'border-slate-300 text-slate-700 focus:border-[#0052cc]'
-                }`}
-              >
-                <option value="" disabled>-- Select a Government Scheme --</option>
-                {schemes.map(s => (
-                  <option key={s._id} value={s._id}>{s.title}</option>
-                ))}
-              </select>
-              {errors.scheme && <p className="text-rose-500 text-[10px] font-bold mt-1.5">{errors.scheme}</p>}
-            </div>
-
             <EligibilityForm 
               formData={formData}
               errors={errors}
@@ -206,62 +157,49 @@ const EligibilityPage = () => {
                 onClick={handleNextStep}
                 loading={loading}
                 disabled={loading}
-                text="Next"
+                text="Discover Schemes"
               />
             </div>
           </div>
         </FormCard>
       ) : (
         <div className="space-y-6">
-          
-          {/* Header Row */}
-          {/* Results Display */}
-          <div className="w-full max-w-2xl mx-auto">
-            {eligibilityResult?.eligible ? (
-              <div className="bg-white rounded-3xl border border-green-200 shadow-sm overflow-hidden text-center p-12">
-                <FaCheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">You are Eligible!</h3>
-                <p className="text-sm font-semibold text-slate-500 mb-8 max-w-md mx-auto leading-relaxed">
-                  Great news! Based on the credentials provided, you meet all the eligibility criteria for the selected scheme.
-                </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Recommended for You</h2>
+              <p className="text-sm font-semibold text-slate-500 mt-1">Based on your credentials, here are the schemes you are most eligible for.</p>
+            </div>
+            <button 
+              onClick={() => setStep(1)}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors bg-white cursor-pointer"
+            >
+              <FaChevronLeft /> Edit Details
+            </button>
+          </div>
 
-                <div className="mt-8 mb-8 text-left bg-emerald-50 rounded-2xl p-6 border border-emerald-100 max-w-lg mx-auto">
-                  <h4 className="text-sm font-black text-emerald-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <FaFileAlt className="text-emerald-600" /> Application Guidance
-                  </h4>
-                  <ol className="list-decimal pl-5 space-y-3 text-xs font-semibold text-emerald-800">
-                    <li>Prepare your Aadhar Card, Income Certificate, and recent passport-size photographs.</li>
-                    <li>Ensure your linked bank account is active for direct benefit transfers (DBT).</li>
-                    <li>Click the button below to navigate to the official application portal.</li>
-                    <li>Complete the registration using your verified credentials.</li>
-                  </ol>
-                </div>
-
-                <button 
-                  onClick={() => window.open('https://www.india.gov.in', '_blank')}
-                  className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold shadow-md shadow-green-600/20 transition-all cursor-pointer border-none"
-                >
-                  Proceed to Official Portal
-                </button>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {recommendedSchemes.length > 0 ? (
+              recommendedSchemes.map(scheme => (
+                <SchemeCard 
+                  key={scheme._id}
+                  scheme={{
+                    id: scheme._id,
+                    displayId: scheme.displayId || scheme._id.substring(0, 8).toUpperCase(),
+                    title: scheme.title,
+                    description: scheme.description,
+                    category: scheme.category,
+                    matchPercentage: scheme.matchPercentage,
+                    eligibilityTag: scheme.eligibilityTag
+                  }}
+                  isBookmarked={bookmarkedIds.includes(scheme._id)}
+                  onBookmark={() => handleBookmarkToggle(scheme._id)}
+                />
+              ))
             ) : (
-              <div className="bg-white rounded-3xl border border-rose-200 shadow-sm overflow-hidden text-center p-12">
-                <FaTimesCircle className="w-20 h-20 text-rose-500 mx-auto mb-6" />
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Not Eligible</h3>
-                <p className="text-sm font-semibold text-slate-500 mb-6 max-w-md mx-auto leading-relaxed">
-                  Unfortunately, you do not meet the criteria for this scheme based on the details provided.
-                </p>
-                
-                {eligibilityResult?.failedCriteria?.length > 0 && (
-                  <div className="text-left bg-rose-50 rounded-xl p-5 border border-rose-100 max-w-sm mx-auto">
-                    <h4 className="text-xs font-black text-rose-800 uppercase tracking-wider mb-3">Failed Criteria</h4>
-                    <ul className="list-disc pl-5 space-y-1.5 text-xs font-bold text-rose-700">
-                      {eligibilityResult.failedCriteria.map(c => (
-                        <li key={c}>{c.toUpperCase()}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+              <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 rounded-3xl">
+                <FaTimesCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-slate-600">No schemes match your profile</h3>
+                <p className="text-sm font-semibold text-slate-400 mt-2">Try adjusting your eligibility details.</p>
               </div>
             )}
           </div>  
