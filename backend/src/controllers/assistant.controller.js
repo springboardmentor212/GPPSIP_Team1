@@ -137,30 +137,6 @@ const chat = async (req, res, next) => {
             content: message
         });
 
-        // Simple RAG-lite implementation: Search Database for keywords
-        const keywords = message.toLowerCase().split(' ').filter(w => w.length > 3);
-        const searchRegex = new RegExp(keywords.join('|'), 'i');
-
-        const policies = await Policy.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex },
-                { content: searchRegex }
-            ]
-        }).limit(3);
-
-        const schemes = await Scheme.find({
-            $or: [
-                { title: searchRegex },
-                { description: searchRegex }
-            ]
-        }).limit(3);
-
-        const DocumentChunk = require('../models/documentChunk.model');
-        const chunks = await DocumentChunk.find({
-            text: searchRegex
-        }).limit(5);
-
         let contextDocs = [];
         let citations = [];
 
@@ -188,7 +164,7 @@ Your goal is to answer the user's question based strictly on the provided contex
 Always be polite and structured in your response. Do not output raw markdown links or HTML. Keep the response concise but informative.
 `;
 
-        const geminiApiKey = process.env.GEMINI_API_KEY;
+
         let responseContent = "";
 
         if (!geminiApiKey) {
