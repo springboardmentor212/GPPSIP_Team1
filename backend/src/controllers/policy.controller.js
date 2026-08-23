@@ -91,6 +91,9 @@ const updatePolicy = async (req, res, next) => {
  * @desc Update policy status (Approve/Archive)
  * @access Private (Gov. Official)
  */
+const Notification = require('../models/notification.model');
+const User = require('../models/user.model');
+
 const updatePolicyStatus = async (req, res, next) => {
     try {
         const { status } = req.body;
@@ -102,6 +105,26 @@ const updatePolicyStatus = async (req, res, next) => {
 
         if (!policy) {
             return res.status(404).json({ success: false, message: 'Policy not found' });
+        }
+
+        // Automated Notification Trigger for Citizens if Policy becomes Active
+        if (status === 'Active') {
+            const citizens = await User.find({ role: 'Citizen' }).select('_id');
+            if (citizens.length > 0) {
+                const notifications = citizens.map(c => ({
+                    recipient: c._id,
+                    title: `New Policy Activated: ${policy.title}`,
+                    subtitle: `Department: ${policy.department || 'Government'}`,
+                    description: `A new policy has been activated that you might be eligible for. Check out the details for ${policy.title}.`,
+                    category: 'Policy Update',
+                    priority: 'NORMAL',
+                    department: policy.department,
+                    associatedResourceId: policy._id,
+                    associatedResourceType: 'Policy'
+                }));
+                // Insert silently in background
+                Notification.insertMany(notifications).catch(err => console.error("Failed to insert notifications", err));
+            }
         }
 
         res.status(200).json({ success: true, message: `Policy status updated to ${status}`, policy });

@@ -18,6 +18,26 @@ const createScheme = async (req, res, next) => {
 
         await scheme.save();
 
+        // Automated Notification Trigger for Citizens if a New Scheme is Registered
+        const Notification = require('../models/notification.model');
+        const User = require('../models/user.model');
+        const citizens = await User.find({ role: 'Citizen' }).select('_id');
+        if (citizens.length > 0) {
+            const notifications = citizens.map(c => ({
+                recipient: c._id,
+                title: `New Government Scheme: ${scheme.title}`,
+                subtitle: `Category: ${scheme.category || 'Welfare'}`,
+                description: `A new government scheme has been registered. Visit the Schemes page to check your eligibility for ${scheme.title}.`,
+                category: 'Scheme Update',
+                priority: 'NORMAL',
+                department: scheme.category,
+                associatedResourceId: scheme._id,
+                associatedResourceType: 'Scheme'
+            }));
+            // Insert silently in background
+            Notification.insertMany(notifications).catch(err => console.error("Failed to insert notifications", err));
+        }
+
         res.status(201).json({
             success: true,
             message: 'Scheme registered successfully',
