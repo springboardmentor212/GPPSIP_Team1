@@ -19,3 +19,8 @@ export const checkSavedScheme = async (schemeId) => {
     const response = await api.get(`/saved-schemes/check/${schemeId}`);
     return response.data;
 };
+
+export const toggleSaveScheme = async (schemeId) => {
+    const response = await api.post('/saved-schemes/toggle', { schemeId });
+    return response.data;
+};

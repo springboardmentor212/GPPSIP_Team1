@@ -5,7 +5,7 @@ import PolicyCard from '../../components/cards/PolicyCard';
 import EmptyPolicyCard from '../../components/cards/EmptyPolicyCard';
 import Pagination from '../../components/common/Pagination';
 import { searchAll } from '../../services/search.service';
-import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
+import { toggleSavePolicy, getSavedPolicies } from '../../services/savedPolicy.service';
 
 const PolicySearchPage = ({ onReadMore }) => {
   // State for database policies
@@ -96,16 +96,16 @@ const PolicySearchPage = ({ onReadMore }) => {
   };
 
   const handleBookmarkToggle = async (policyId) => {
-    const isBookmarked = bookmarkedIds.includes(policyId);
     try {
-      if (isBookmarked) {
-        await removeSavedPolicy(policyId);
-        setBookmarkedIds(prev => prev.filter(id => id !== policyId));
-        triggerToast(`Removed policy from bookmarks`);
-      } else {
-        await savePolicy(policyId);
-        setBookmarkedIds(prev => [...prev, policyId]);
-        triggerToast(`Saved policy to bookmarks`);
+      const res = await toggleSavePolicy(policyId);
+      if (res.success) {
+        if (res.isSaved) {
+          setBookmarkedIds(prev => [...prev, policyId]);
+          triggerToast(`Saved policy to bookmarks`);
+        } else {
+          setBookmarkedIds(prev => prev.filter(id => id !== policyId));
+          triggerToast(`Removed policy from bookmarks`);
+        }
       }
     } catch (error) {
       console.error("Failed to toggle bookmark:", error);
