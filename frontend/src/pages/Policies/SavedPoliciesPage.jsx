@@ -1,26 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import FilterButton from '../../components/common/FilterButton';
 import ExportButton from '../../components/common/ExportButton';
 import SavedPolicyGrid from './SavedPolicyGrid';
 import BookmarkActivity from './BookmarkActivity';
 import Footer from '../../components/layout/Footer';
 import { getSavedPolicies, removeSavedPolicy } from '../../services/savedPolicy.service';
+import { getSavedSchemes, removeSavedScheme } from '../../services/savedScheme.service';
 import { useToast } from '../../hooks/useToast';
 import { FaBalanceScale } from 'react-icons/fa';
 
-const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
+const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy, setSelectedScheme }) => {
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const [savedList, setSavedList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSavedPolicies = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getSavedPolicies();
-        if (data.success) {
-          // Normalize data for the UI
-          const policies = data.policies.map(p => ({
+        const [policiesData, schemesData] = await Promise.all([
+          getSavedPolicies().catch(() => ({ success: false, policies: [] })),
+          getSavedSchemes().catch(() => ({ success: false, schemes: [] }))
+        ]);
+
+        let combined = [];
+        
+        if (policiesData.success) {
+          const policies = policiesData.policies.map(p => ({
             id: p._id,
+            type: 'policy',
             title: p.title,
             category: p.category,
             description: p.description,
@@ -30,7 +39,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
             publishedDate: new Date(p.createdAt).toLocaleDateString(),
             lastReview: new Date(p.updatedAt).toLocaleDateString(),
             status: p.status,
-            objectives: [], // Placeholder
+            objectives: [], 
             eligibility: {
               applicableEntities: "All citizens",
               exceptions: "None"
@@ -38,34 +47,65 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
             documents: [],
             relatedList: []
           }));
-          setSavedList(policies);
+          combined = [...combined, ...policies];
         }
+
+        if (schemesData.success) {
+          const schemes = (schemesData.schemes || []).map(s => ({
+            id: s._id,
+            type: 'scheme',
+            title: s.title || s.name,
+            category: s.category,
+            description: s.description,
+            lastViewed: new Date().toLocaleDateString(),
+            bookmarkStatus: "Active",
+            ministry: s.ministry || s.category,
+            publishedDate: new Date(s.createdAt || Date.now()).toLocaleDateString(),
+            lastReview: new Date(s.updatedAt || Date.now()).toLocaleDateString(),
+            status: s.status,
+            objectives: [], 
+            eligibility: s.eligibility || {},
+            documents: [],
+            relatedList: []
+          }));
+          combined = [...combined, ...schemes];
+        }
+
+        setSavedList(combined);
       } catch (error) {
-        console.error("Failed to fetch saved policies:", error);
+        console.error("Failed to fetch saved items:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSavedPolicies();
+    fetchData();
   }, []);
 
   const [activities, setActivities] = useState([]);
 
   const [categoryFilter, setCategoryFilter] = useState("All");
 
-  const handleQuickOpen = (policy) => {
-    setSelectedPolicy(policy);
-    setActiveTab('policy-details');
+  const handleQuickOpen = (item) => {
+    if (item.type === 'scheme') {
+      navigate(`/scheme/${item.id}`);
+    } else {
+      setSelectedPolicy(item);
+      setActiveTab('policy-details');
+    }
   };
 
-  const handleRemove = async (id) => {
+  const handleRemove = async (item) => {
     try {
-      await removeSavedPolicy(id);
-      setSavedList(prev => prev.filter(p => p.id !== id));
+      if (item.type === 'scheme') {
+        await removeSavedScheme(item.id);
+      } else {
+        await removeSavedPolicy(item.id);
+      }
+      setSavedList(prev => prev.filter(p => p.id !== item.id));
     } catch (error) {
-      console.error("Failed to remove saved policy:", error);
-      addToast("Failed to remove policy. Please try again.", 'error');
+      console.error("Failed to remove saved item:", error);
+      addToast("Failed to remove item. Please try again.", 'error');
     }
   };
 
