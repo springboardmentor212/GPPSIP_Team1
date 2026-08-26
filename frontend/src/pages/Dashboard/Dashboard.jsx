@@ -241,8 +241,8 @@ const Dashboard = () => {
           // Fetch accurate bookmark status for recommendations (which are Schemes now)
           try {
             const savedRes = await getSavedSchemes();
-            if (savedRes.success && Array.isArray(savedRes.savedSchemes)) {
-              const savedIds = new Set(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
+            if (savedRes.success && Array.isArray(savedRes.schemes)) {
+              const savedIds = new Set(savedRes.schemes.map(s => s._id));
               savedState = recommendations.map(p => savedIds.has(p._id));
             }
           } catch (e) {

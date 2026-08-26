@@ -45,7 +45,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
         try {
           const savedRes = await getSavedSchemes();
           if (savedRes.success) {
-            setBookmarkedIds(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
+            setBookmarkedIds((savedRes.schemes || []).map(s => s._id));
           }
         } catch (err) {
           console.error("Failed to load saved schemes", err);
