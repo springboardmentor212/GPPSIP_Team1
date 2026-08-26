@@ -5,16 +5,19 @@ import { getPolicies } from '../../services/policy.service';
 import { getSchemes } from '../../services/scheme.service';
 import { comparePolicies, compareSchemes } from '../../services/comparison.service';
 
-const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
+const ComparisonPage = ({ onBack, preSelectedItems }) => {
   const [itemsToCompare, setItemsToCompare] = useState([]);
   const [loading, setLoading] = useState(true);
   const [compareType, setCompareType] = useState('policies');
+
+  // Stringify the array to avoid reference-based infinite loops if parent passes inline array or defaults
+  const preSelectedIdsString = JSON.stringify(preSelectedItems || []);
 
   useEffect(() => {
     const fetchComparisonData = async () => {
       setLoading(true);
       try {
-        let idsToCompare = preSelectedItems;
+        let idsToCompare = JSON.parse(preSelectedIdsString);
         if (!idsToCompare || idsToCompare.length < 2) {
           // Fallback if not enough items selected: fetch default 2 items based on compareType
           if (compareType === 'policies') {
@@ -51,7 +54,7 @@ const ComparisonPage = ({ onBack, preSelectedItems = [] }) => {
       }
     };
     fetchComparisonData();
-  }, [preSelectedItems, compareType]);
+  }, [preSelectedIdsString, compareType]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
