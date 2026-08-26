@@ -56,7 +56,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
 
   const handleQuickOpen = (policy) => {
     setSelectedPolicy(policy);
-    setActiveTab('details');
+    setActiveTab('policy-details');
   };
 
   const handleRemove = async (id) => {
@@ -78,7 +78,7 @@ const SavedPoliciesPage = ({ setActiveTab, setSelectedPolicy }) => {
   };
 
   const handleToggleFilter = () => {
-    const categories = ["All", "Healthcare Policy", "Urban Planning", "Climate Action", "Digital Sovereignty", "Social Welfare"];
+    const categories = ["All", "Education", "Healthcare", "Agriculture", "Employment", "Finance", "Women & Child Welfare", "Housing", "Environment", "Digital Governance", "Infrastructure"];
     const nextIdx = (categories.indexOf(categoryFilter) + 1) % categories.length;
     setCategoryFilter(categories[nextIdx]);
   };
