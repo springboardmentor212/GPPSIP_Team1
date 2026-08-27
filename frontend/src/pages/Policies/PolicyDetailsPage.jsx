@@ -7,7 +7,7 @@ import DocumentGrid from '../../components/common/DocumentGrid';
 import QuickActionPanel from '../../components/dashboard/QuickActionPanel';
 import RelatedPolicies from './RelatedPolicies';
 import Footer from '../../components/layout/Footer';
-import { savePolicy, removeSavedPolicy, checkSavedPolicy } from '../../services/savedPolicy.service';
+import { toggleSavePolicy, checkSavedPolicy } from '../../services/savedPolicy.service';
 import { useToast } from '../../hooks/useToast';
 
 const PolicyDetailsPage = ({ policy, onBack }) => {
@@ -37,12 +37,9 @@ const PolicyDetailsPage = ({ policy, onBack }) => {
   const handleBookmarkToggle = async () => {
     if (!mappedPolicy?._id) return;
     try {
-      if (isBookmarked) {
-        await removeSavedPolicy(mappedPolicy._id);
-        setIsBookmarked(false);
-      } else {
-        await savePolicy(mappedPolicy._id);
-        setIsBookmarked(true);
+      const res = await toggleSavePolicy(mappedPolicy._id);
+      if (res.success) {
+        setIsBookmarked(res.isSaved);
       }
     } catch (error) {
       console.error("Failed to toggle bookmark:", error);

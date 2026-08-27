@@ -19,3 +19,8 @@ export const checkSavedPolicy = async (policyId) => {
     const response = await api.get(`/saved-policies/check/${policyId}`);
     return response.data;
 };
+
+export const toggleSavePolicy = async (policyId) => {
+    const response = await api.post('/saved-policies/toggle', { policyId });
+    return response.data;
+};

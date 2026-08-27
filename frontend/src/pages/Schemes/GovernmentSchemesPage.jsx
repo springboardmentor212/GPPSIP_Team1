@@ -7,7 +7,7 @@ import CTASection from '../../components/common/CTASection';
 import SchemeApplyModal from '../../components/dashboard/SchemeApplyModal';
 import { getSchemes } from '../../services/scheme.service';
 import { getRecommendations } from '../../services/recommendation.service';
-import { getSavedSchemes, saveScheme, removeSavedScheme } from '../../services/savedScheme.service';
+import { getSavedSchemes, toggleSaveScheme } from '../../services/savedScheme.service';
 import SchemeDetailsPage from './SchemeDetailsPage';
 import { applyForScheme } from '../../services/application.service';
 import useAuth from '../../hooks/useAuth';
@@ -45,7 +45,7 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
         try {
           const savedRes = await getSavedSchemes();
           if (savedRes.success) {
-            setBookmarkedIds(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
+            setBookmarkedIds((savedRes.schemes || []).map(s => s._id));
           }
         } catch (err) {
           console.error("Failed to load saved schemes", err);
@@ -89,14 +89,15 @@ const GovernmentSchemesPage = ({ searchQuery = "" }) => {
     }
     
     try {
-      if (bookmarkedIds.includes(id)) {
-        await removeSavedScheme(id);
-        setBookmarkedIds((prev) => prev.filter((bId) => bId !== id));
-        addToast("Scheme removed from saved list", "success");
-      } else {
-        await saveScheme(id);
-        setBookmarkedIds((prev) => [...prev, id]);
-        addToast("Scheme saved successfully", "success");
+      const res = await toggleSaveScheme(id);
+      if (res.success) {
+        if (res.isSaved) {
+          setBookmarkedIds((prev) => [...prev, id]);
+          addToast("Scheme saved successfully", "success");
+        } else {
+          setBookmarkedIds((prev) => prev.filter((bId) => bId !== id));
+          addToast("Scheme removed from saved list", "success");
+        }
       }
     } catch (error) {
       addToast(error.message || "Failed to update saved scheme", "error");

@@ -55,9 +55,9 @@ import {
   getPendingApplications
 } from '../../services/application.service';
 import { getAdminStats } from '../../services/admin.service';
-import { savePolicy, removeSavedPolicy, getSavedPolicies } from '../../services/savedPolicy.service';
+import { getSavedPolicies } from '../../services/savedPolicy.service';
 import { getRecommendations } from '../../services/recommendation.service';
-import { getSavedSchemes, saveScheme, removeSavedScheme } from '../../services/savedScheme.service';
+import { getSavedSchemes, toggleSaveScheme } from '../../services/savedScheme.service';
 import { useToast } from '../../hooks/useToast';
 
 // Import UI components
@@ -241,8 +241,8 @@ const Dashboard = () => {
           // Fetch accurate bookmark status for recommendations (which are Schemes now)
           try {
             const savedRes = await getSavedSchemes();
-            if (savedRes.success && Array.isArray(savedRes.savedSchemes)) {
-              const savedIds = new Set(savedRes.savedSchemes.map(s => s.scheme._id || s.scheme));
+            if (savedRes.success && Array.isArray(savedRes.schemes)) {
+              const savedIds = new Set(savedRes.schemes.map(s => s._id));
               savedState = recommendations.map(p => savedIds.has(p._id));
             }
           } catch (e) {
@@ -290,18 +290,13 @@ const Dashboard = () => {
         addToast("Please log in to save schemes", "error");
         return;
       }
-      const isCurrentlySaved = savedSchemes[idx];
-      if (isCurrentlySaved) {
-        await removeSavedScheme(id);
-      } else {
-        await saveScheme(id);
+      const res = await toggleSaveScheme(id);
+      if (res.success) {
+        const newSaved = [...savedSchemes];
+        newSaved[idx] = res.isSaved;
+        setSavedSchemes(newSaved);
+        addToast(res.isSaved ? "Saved successfully" : "Removed from saved", "success");
       }
-      
-      const newSaved = [...savedSchemes];
-      newSaved[idx] = !isCurrentlySaved;
-      setSavedSchemes(newSaved);
-      
-      addToast(isCurrentlySaved ? "Removed from saved" : "Saved successfully", "success");
     } catch (err) {
       addToast("Failed to update saved status", "error");
     }

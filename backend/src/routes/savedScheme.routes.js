@@ -3,7 +3,8 @@ const {
     saveScheme,
     getSavedSchemes,
     removeSavedScheme,
-    checkSavedScheme
+    checkSavedScheme,
+    toggleSaveScheme
 } = require('../controllers/savedScheme.controller');
 const identifyUser = require('../middlewares/auth.middleware');
 
@@ -17,6 +18,12 @@ savedSchemeRouter.use(identifyUser);
  * @desc Save a scheme
  */
 savedSchemeRouter.post('/', saveScheme);
+
+/**
+ * @route POST /api/saved-schemes/toggle
+ * @desc Toggle save/unsave a scheme
+ */
+savedSchemeRouter.post('/toggle', toggleSaveScheme);
 
 /**
  * @route GET /api/saved-schemes

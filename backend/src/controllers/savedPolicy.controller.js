@@ -99,9 +99,38 @@ const checkSavedPolicy = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Toggle save/unsave a policy (atomic operation)
+ * @route POST /api/saved-policies/toggle
+ * @access Private
+ */
+const toggleSavePolicy = async (req, res, next) => {
+    try {
+        const { policyId } = req.body;
+        const userId = req.user.id;
+
+        if (!policyId) {
+            return res.status(400).json({ success: false, message: 'policyId is required' });
+        }
+
+        const existing = await SavedPolicy.findOne({ user: userId, policy: policyId });
+        if (existing) {
+            await SavedPolicy.findByIdAndDelete(existing._id);
+            return res.status(200).json({ success: true, isSaved: false, message: 'Policy removed from saved list' });
+        }
+
+        const saved = new SavedPolicy({ user: userId, policy: policyId });
+        await saved.save();
+        res.status(201).json({ success: true, isSaved: true, message: 'Policy saved successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     savePolicy,
     getSavedPolicies,
     removeSavedPolicy,
-    checkSavedPolicy
+    checkSavedPolicy,
+    toggleSavePolicy
 };

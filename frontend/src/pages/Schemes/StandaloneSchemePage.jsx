@@ -71,15 +71,11 @@ const StandaloneSchemePage = () => {
       return;
     }
     try {
-      const { saveScheme, removeSavedScheme } = await import('../../services/savedScheme.service');
-      if (isSaved) {
-        await removeSavedScheme(id);
-        setIsSaved(false);
-        addToast("Scheme removed from saved list.", 'success');
-      } else {
-        await saveScheme(id);
-        setIsSaved(true);
-        addToast("Scheme saved successfully.", 'success');
+      const { toggleSaveScheme } = await import('../../services/savedScheme.service');
+      const res = await toggleSaveScheme(id);
+      if (res.success) {
+        setIsSaved(res.isSaved);
+        addToast(res.isSaved ? "Scheme saved successfully." : "Scheme removed from saved list.", 'success');
       }
     } catch (err) {
       console.error(err);

@@ -99,9 +99,38 @@ const checkSavedScheme = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc Toggle save/unsave a scheme (atomic operation)
+ * @route POST /api/saved-schemes/toggle
+ * @access Private
+ */
+const toggleSaveScheme = async (req, res, next) => {
+    try {
+        const { schemeId } = req.body;
+        const userId = req.user.id;
+
+        if (!schemeId) {
+            return res.status(400).json({ success: false, message: 'schemeId is required' });
+        }
+
+        const existing = await SavedScheme.findOne({ user: userId, scheme: schemeId });
+        if (existing) {
+            await SavedScheme.findByIdAndDelete(existing._id);
+            return res.status(200).json({ success: true, isSaved: false, message: 'Scheme removed from saved list' });
+        }
+
+        const saved = new SavedScheme({ user: userId, scheme: schemeId });
+        await saved.save();
+        res.status(201).json({ success: true, isSaved: true, message: 'Scheme saved successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     saveScheme,
     getSavedSchemes,
     removeSavedScheme,
-    checkSavedScheme
+    checkSavedScheme,
+    toggleSaveScheme
 };

@@ -14,7 +14,7 @@ const SavedPolicyGrid = ({ savedList = [], onQuickOpen, onRemove, onBrowse }) =>
             description={policy.description}
             lastViewed={policy.lastViewed}
             onQuickOpen={() => onQuickOpen(policy)}
-            onRemove={() => onRemove(policy.id)}
+            onRemove={() => onRemove(policy)}
           />
         </div>
       ))}

@@ -483,7 +483,7 @@ const LandingPage = () => {
 
           {/* Copyright Text */}
           <div className="text-xs text-slate-500 font-light">
-            &copy; 2024 PolicyGPT. All rights reserved.
+            &copy; 2026 PolicyGPT. All rights reserved.
           </div>
         </div>
       </footer>
