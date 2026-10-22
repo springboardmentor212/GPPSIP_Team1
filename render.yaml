@@ -1,0 +1,32 @@
+services:
+  # ─── Monolith Web Service ───────────────────────────────────────────────────
+  - type: web
+    name: policygpt
+    runtime: node
+    region: oregon
+    plan: free
+
+    # Render runs this from the repo root
+    rootDir: .
+
+    # 1. Install all deps + build the Vite frontend
+    buildCommand: npm run build
+
+    # 2. Start the Express server (serves API + built React SPA)
+    startCommand: npm start
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGO_URI
+        sync: false          # Set this in the Render dashboard
+      - key: JWT_SECRET
+        sync: false          # Set this in the Render dashboard
+      - key: SUPER_ADMIN_KEY
+        sync: false          # Set this in the Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false          # Set this in the Render dashboard
+      - key: FRONTEND_URL
+        sync: false          # Set to your Render service URL or Vercel URL

@@ -1,7 +1,9 @@
-const express = require('express');
+﻿const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 const errorHandler = require('./middlewares/error.middleware');
 
 const app = express();
@@ -14,7 +16,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 /* require routes */
@@ -60,24 +61,28 @@ app.use('/api/saved-policies', savedPolicyRouter);
 app.use('/api/saved-schemes', savedSchemeRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/circulars', circularRouter);
+
 /* health check route */
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'PolicyGPT backend is running',
+  res.status(200).json({ success: true, message: 'PolicyGPT backend is running' });
+});
+
+/* Serve React SPA - works whenever frontend/dist exists (local build OR Render production) */
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
+  app.use(express.static(frontendDist));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
   });
-});
+} else {
+  app.get('/', (req, res) => {
+    res.send('PolicyGPT API is running. Build the frontend to serve the full app.');
+  });
+}
 
-app.get("/", (req, res) => {
-  res.send("Welcome to PolicyGPT backend!");
-});
-
-/* 404 catch-all middleware */
+/* 404 catch-all for unmatched /api routes */
 app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: 'API Route Not Found'
-  });
+  res.status(404).json({ success: false, message: 'API Route Not Found' });
 });
 
 /* global error handling middleware */
